@@ -1,10 +1,15 @@
 ## Definitions
 - field: all 81 positions on the board
-  + row 0, column 0 can be found at index 0 of the list
-  + row 1, column 0 can be found at index 9 of the list
-  + ...
-  + row 8, column 0 can be found at index 72 of the list
-  + row 8, column 8 can be found at index 80 of the list
+  + indices
+    - row 0, column 0 can be found at index 0 of the list
+    - row 1, column 0 can be found at index 9 of the list
+    - ...
+    - row 8, column 0 can be found at index 72 of the list
+    - row 8, column 8 can be found at index 80 of the list
+  + values
+    - 0 = available for move
+    - 1 = player 1 owns
+    - 2 = player 2 owns
 - macroboard (macro) list of 3x3 squares
   - indexes
     + 0 is upper left index
@@ -16,6 +21,33 @@
     + 0 = the square is a draw 
     + 1 = player one won the square
     + 2 = player two won the square
+
+## Game Engine Communication
+### Input
+- Space delimited
+- Starts with one of three words
+  + settings
+    - For now we are only interested in 'settings your_botid i'
+      + 'i' can be 1 or 2
+    - any other settings input we can ignore for now
+  + update
+    - 'update game field [c,...]
+      + provides a list of the current board state (see field definition above)
+      + list format: c,c,c,c,....,c (length of 81)
+    - 'update game macroboard [s,....]'
+      + provides a list of the current macroboard state (see macroboard defn above)
+      + list format s,s,s,...s (length of 9)
+    - also 'update game round i' and 'update game move i' but not interested in now
+  + action
+    - only one possible input starting with 'action'
+    - 'action move t'
+      + means it's our turn to move, initiate the move process
+      + 't' is timebank in milliseconds (we can ignore the time for now)
+
+### Output
+- Will always be 'place_move i i'
+  + 'i' is the row or column number of the 9 by 9 gameboard
+  + 'i' is a value from 0 to 8
 
 ## Board Calculations
 ### Upper Left Corner of a Macro
