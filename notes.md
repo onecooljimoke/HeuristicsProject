@@ -39,6 +39,8 @@
 - macroboard index = row + (column / 3)
 
 ## Initial Goals
+### Goal 1: Build a bot that can accept input, choose a random, legal move
+            and output the move in the correct format
 1. Accept from input
 2. Determine the type of input 
    1. Settings
@@ -59,6 +61,8 @@
    - randomly select an index value from the input 
 7. Transform the selected move to a row and column in overall board
 8. Output the selected move
+
+### Goal 2: Research game strategy
 9. Research tic tac toe algorithmic strategy
 10. Research alpha/beta pruning
 11. Research Clara rules package
