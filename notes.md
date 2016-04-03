@@ -36,7 +36,7 @@
       + list format: c,c,c,c,....,c (length of 81)
     - 'update game macroboard [s,....]'
       + provides a list of the current macroboard state (see macroboard defn above)
-      + list format s,s,s,...s (length of 9)
+      + list format: s,s,s,...s (length of 9)
     - also 'update game round i' and 'update game move i' but not interested in now
   + action
     - only one possible input starting with 'action'
