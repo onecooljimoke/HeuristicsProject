@@ -50,6 +50,55 @@
     ; remove false values from the list, leaving us with macroboard numbers
     (filter #(not (= false %)) lst)))
 
+; (upper-left-macro-column macro_num) -> int?
+; macro_num -> int?
+(defn upper-left-macro-column
+  "Return the upper left column of a macroboard"
+  [macro_num]
+   (+ (mod macro_num 3) (* 2 (mod macro_num 3))))
+
+; (upper-left-macro-row macro_num) -> int?
+; macro_num -> int?
+(defn upper-left-macro-row
+  "Return the upper left row of a macroboard"
+  [macro_num]
+  (+ (quot macro_num 3) (* 2 (quot macro_num 3))))
+
+; (internal-macroboard-column index)
+; index -> int?
+(defn internal-macroboard-column
+  "Return the column number from 0 to 2 that an index of 0 to 8
+  would belong to.  This is for when we only consider the moves
+  inside a macroboard"
+  [index]
+  (mod index 3))
+
+; (internal-board-row index) -> int?
+(defn internal-macroboard-row
+  "Return the row number from 0 to 2 that an index of 0 to 8
+  would belong to.  This is for when we only consider the moves
+  inside a macroboard"
+  [index]
+  (quot index 3))
+
+; (convert-move-for-output macro-num move-lst) -> list?
+; macro-num -> int?
+; move-lst-> list? of int?
+(defn convert-move-for-output
+  "Convert a move inside a macroboard to a row and column in the big
+  board so we can output the move to the game. First item in returned
+  list is the column, second item is the row"
+  [macro-num move-lst]
+  (list (+ (upper-left-macro-column macro-num) (internal-macroboard-column (first move-lst)))
+        (+ (upper-left-macro-row macro-num) (internal-macroboard-row (second move-lst)))))
+
+; (output-string move-lst) -> string?
+; move-lst -> list? of string?
+(defn output-string
+  "Return a string in the correct format for output to the game"
+  [move-lst]
+  (str "place_move " (first move-lst) " " (second move-lst)))
+
 ;(read-input)
 ; listen to standard-input and write it to standard output
 (defn read-input

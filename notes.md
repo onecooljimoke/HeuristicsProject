@@ -48,6 +48,7 @@
 - Will always be 'place_move i i'
   + 'i' is the row or column number of the 9 by 9 gameboard
   + 'i' is a value from 0 to 8
+  + first 'i' is the column #, second is the row #
 
 ## Board Calculations
 ### Upper Left Corner of a Macro
