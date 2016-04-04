@@ -7,7 +7,8 @@ Contained within this project is a program meant to run on a server for competin
 in an AI Bot Challenge run by [The AI Games](http://theaigames.com). Specifcally,
 [Ultimate Tic Tac Toe](http://theaigames.com/competitions/ultimate-tic-tac-toe/rules)
 
-Is our bot any good? Probably not, but it's ours, and we love it anyways.
+### Is our bot any good?
+Probably not. But it's ours, and we love it anyways.
 
 ## Running
 
