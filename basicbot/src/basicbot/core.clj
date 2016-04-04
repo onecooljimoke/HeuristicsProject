@@ -125,27 +125,30 @@
   (+ (* 9 row) col))
 
 ; (parse-macro-board)
-; Given a macroboard number returns a list of values from 
-; left to right top to bottom
+; mb-num -> int?
 (defn parse-macro-board
+  "Given a macroboard number returns a list of values from 
+  left to right top to bottom"
   [mb-num]
   (def upper-left-cell (field-index (upper-left-macro-row mb-num) (upper-left-macro-column mb-num) ))
-  (def board-list (vector))
   (cond (and (>= mb-num 0) (<= mb-num 8)) 
-    (conj board-list 
+    (def board-list 
         ; first three cells
-        upper-left-cell (+ upper-left-cell 1) (+ upper-left-cell 2)
+        (list upper-left-cell (+ upper-left-cell 1) (+ upper-left-cell 2)
         ; next rows three cells
         (+ upper-left-cell 9) (+ upper-left-cell 10) (+ upper-left-cell 11)
         ; last rows three cells
-        (+ upper-left-cell 18) (+ upper-left-cell 19) (+ upper-left-cell 20))
-    :else board-list))  ;; default - return empty board-list, ie, no cells for an invalid macroboard number
+        (+ upper-left-cell 18) (+ upper-left-cell 19) (+ upper-left-cell 20)))
+    :else (def board-list '0))
+        board-list)  ;; default - return empty board-list, ie, no cells for an invalid macroboard number
+
+
 
 (defn -main
   ""
   [& args]
   ; (read-input)
-  ;(println(parse-macro-board 8)) ;; print the resulting field cells from the given macroboard number
-  ;(parse-macro-board -1)    ;; print the resulting field cells from the given invalid macroboard number
+  ; (println (parse-macro-board 8)) ;; print the resulting field cells from the given macroboard number
+  ; (println (parse-macro-board -1))    ;; print the resulting field cells from the given invalid macroboard number
   ;(parse-macro-board 10)    ;; print the resulting field cells from the given invalid macroboard number
 )
