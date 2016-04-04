@@ -121,7 +121,7 @@
     (.close rdr)))
 
 (defn field-index
-  [row, col]
+  [row col]
   (+ (* 9 row) col))
 
 ; (parse-macro-board)
@@ -131,10 +131,11 @@
   left to right top to bottom"
   [mb-num]
   (def upper-left-cell (field-index (upper-left-macro-row mb-num) (upper-left-macro-column mb-num) ))
-  (cond (and (>= mb-num 0) (<= mb-num 8)) 
-    (def board-list 
+  (cond 
+    (and (>= mb-num 0) (<= mb-num 8)) 
+    (def board-list (list
         ; first three cells
-        (list upper-left-cell (+ upper-left-cell 1) (+ upper-left-cell 2)
+        upper-left-cell (+ upper-left-cell 1) (+ upper-left-cell 2)
         ; next rows three cells
         (+ upper-left-cell 9) (+ upper-left-cell 10) (+ upper-left-cell 11)
         ; last rows three cells
@@ -142,13 +143,34 @@
     :else (def board-list '0))
         board-list)  ;; default - return empty board-list, ie, no cells for an invalid macroboard number
 
-
+; (macro-board-available-cells)
+; mb-cells -> list? of int?
+; field -> list? of int?, The complete playing field in the current game state
+(defn macro-board-available-cells
+  [mb-cells field]
+  ; (nth field (nth mb-cells 3))
+  (def available-cells '())
+  (loop [idx 8]
+    (when (> idx -1)
+      (def crnt-cell (nth field (nth mb-cells idx)))
+      (cond (= crnt-cell 0)
+            ; some shady business because "(conj available-cells crnt-cell)" wasn't working 
+            (def available-cells (conj available-cells idx)))
+      (recur (- idx 1)) ) )
+  available-cells)
 
 (defn -main
   ""
   [& args]
   ; (read-input)
-  ; (println (parse-macro-board 8)) ;; print the resulting field cells from the given macroboard number
+  ; (println (parse-macro-board 0)) ;; print the resulting field cells from the given macroboard number
   ; (println (parse-macro-board -1))    ;; print the resulting field cells from the given invalid macroboard number
-  ;(parse-macro-board 10)    ;; print the resulting field cells from the given invalid macroboard number
+  ; (println (parse-macro-board 10))    ;; print the resulting field cells from the given invalid macroboard number
+
+
+  (def mb (parse-macro-board 0))
+  (def field '(1,2,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
+  (println mb)
+  (println field)
+  (println (macro-board-available-cells mb field))
 )
