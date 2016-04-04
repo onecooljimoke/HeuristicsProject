@@ -190,14 +190,15 @@
   ""
   [& args]
   ; (read-input)
+  
   ; (println (parse-macro-board 0)) ;; print the resulting field cells from the given macroboard number
   ; (println (parse-macro-board -1))    ;; print the resulting field cells from the given invalid macroboard number
   ; (println (parse-macro-board 10))    ;; print the resulting field cells from the given invalid macroboard number
 
 
-  (def mb (parse-macro-board 0))
-  (def field '(1,2,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-  (println mb)
-  (println field)
-  (println (macro-board-available-cells mb field))
+  ; (def mb (parse-macro-board 0))  ;; example macroboard number
+  ; (def field '(1,2,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))  ;; example field input
+  ; (println mb)  ;; print example macroboard number
+  ; (println field)   ;; print example field input
+  ; (println (macro-board-available-cells mb field))  ;; print the available cells from macroboard 0 (that is field cells {0, 1, 2, 9, 10, 11, 18, 19, 20})
 )
