@@ -10,10 +10,10 @@
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
 
-; (string-to-vector str rgx) -> vector?
+; (string-to-vector str rgx) -> vector? of string?
 ; str -> string?
 ; rgx -> regex expression to split string on
-; returns vector of strings
+; vectors will work perfectly for us since the boards are 0 based
 (defn string-to-vector
   "Split a str on rgx"
   [str rgx]
@@ -40,14 +40,24 @@
     idx
     false))
 
+; (macroboard-move-list str) -> list? of false? or int?
+; str -> string? representing the macroboard
+(defn macroboard-move-list
+  "Return a list where each item corresponds to the macroboard index.
+  The value at each position is false if the macroboard tile is not available for
+  a move or the position of the macroboard tile if the tile is available for
+  a move"
+  [str]
+  ; map-indexed gives us the item and it's index in a seq
+  (map-indexed available-for-move? (string-to-vector str #",")))
+
 ; (big-squares-available str) -> list?
 ; str -> string?
 (defn big-squares-available
   "Return a list of macorboard squares that a move can be made in"
   [str]
-  ; map-indexed gives us the index and each item in a vector
-  (let [lst (map-indexed available-for-move? (string-to-vector str #","))]
-    ; remove false values from the list, leaving us with macroboard numbers
+  (let [lst (macroboard-move-list str)]
+    ; remove false values from the list, leaving us with macroboard tile numbers
     (filter #(not (= false %)) lst)))
 
 ; (upper-left-macro-column macro_num) -> int?
@@ -65,7 +75,7 @@
   (+ (quot macro_num 3) (* 2 (quot macro_num 3))))
 
 ; (internal-macroboard-column index)
-; index -> int?
+; index -> int? index within a macroboard tile
 (defn internal-macroboard-column
   "Return the column number from 0 to 2 that an index of 0 to 8
   would belong to.  This is for when we only consider the moves
@@ -74,6 +84,7 @@
   (mod index 3))
 
 ; (internal-board-row index) -> int?
+; index -> int? index within a macroboard tile
 (defn internal-macroboard-row
   "Return the row number from 0 to 2 that an index of 0 to 8
   would belong to.  This is for when we only consider the moves
@@ -81,16 +92,32 @@
   [index]
   (quot index 3))
 
+; (internal-macro-col->board-col macro-num index) -> int?
+; macro-num -> int? index of macroboard
+; index -> int? index within a macroboard
+(defn internal-macro-col->board-col
+  "Translate an internal macroboard column to a column in the big board"
+  [macro-num index]
+  (+ (upper-left-macro-column macro-num) (internal-macroboard-column index)))
+
+; (internal-macro-row->board-row macro-num index) -> int?
+; macro-num -> int? index of macroboard
+; index -> int? index within a macroboard
+(defn internal-macro-row->board-row
+  "Translate an internal macroboard row to a row in the big board" 
+  [macro-num index]
+  (+ (upper-left-macro-row macro-num) (internal-macroboard-row index)))
+
 ; (convert-move-for-output macro-num move-lst) -> list?
-; macro-num -> int?
-; move-lst-> list? of int?
+; macro-num -> int? index of the macroboard
+; index -> int? index of move within the macroboard tile 
 (defn convert-move-for-output
   "Convert a move inside a macroboard to a row and column in the big
-  board so we can output the move to the game. First item in returned
-  list is the column, second item is the row"
-  [macro-num move-lst]
-  (list (+ (upper-left-macro-column macro-num) (internal-macroboard-column (first move-lst)))
-        (+ (upper-left-macro-row macro-num) (internal-macroboard-row (second move-lst)))))
+  board so we can output the move to the game. The returned list
+  holds the column first and then the row"
+  [macro-num index]
+  (list (internal-macro-col->board-col macro-num index)
+        (internal-macro-row->board-row macro-num index)))
 
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
