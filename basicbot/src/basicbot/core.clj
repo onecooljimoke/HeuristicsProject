@@ -16,8 +16,8 @@
 ; str -> string?
 ; rgx -> regex expression to split string on
 ; vectors will work perfectly for us since the boards are 0 based
-(defn string-to-vector
-  "Split a string on a regular expression"
+(defn string->vector
+  "Split a string on a regular expression, return a vector of the results"
   [str rgx]
   (str/split str rgx))
 
@@ -56,7 +56,7 @@
   the macroboard is available for a move"
   [str]
   ; map-indexed gives us the item and it's index within a seq
-  (map-indexed available-for-move? (string-to-vector str #",")))
+  (map-indexed available-for-move? (string->vector str #",")))
 
 ; (big-squares-available str) -> list?
 ; str -> string?
