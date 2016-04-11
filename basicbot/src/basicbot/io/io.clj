@@ -1,4 +1,5 @@
-(ns basicbot.io.io)
+(ns basicbot.io.io
+  "Functions for input and output")
 
 ; input-routes -> map?
 (def input-routes

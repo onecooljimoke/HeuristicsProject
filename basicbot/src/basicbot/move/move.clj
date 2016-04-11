@@ -1,4 +1,5 @@
-(ns basicbot.move.move)
+(ns basicbot.move.move
+  "Functions for selecting a move")
 
 ; (pick-move)
 ; mb-available-cells -> int?

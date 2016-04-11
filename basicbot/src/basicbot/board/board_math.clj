@@ -1,4 +1,6 @@
-(ns basicbot.board.board-math)
+(ns basicbot.board.board-math
+  "Functions for calculating board positions and converting
+  between board positions")
 
 ; (upper-left-macro-column macro_num) -> int?
 ; macro_num -> int?

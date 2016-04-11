@@ -1,4 +1,5 @@
 (ns basicbot.board.board
+  "Runctions for manipulating the game board"
   (:require [basicbot.board.board-math :refer :all]
             [clojure.string :as str]))
 
