@@ -4,8 +4,10 @@
 
 ; input-routes -> map?
 (def input-routes
-  "key is potential first argument for input
-  and value is function to call"
+  "A map for referencing functions to call based on the
+  first word of the game input string. The keys are the
+  potential first words, the values are the functions to
+  call."
   {"settings" #(println "The type is: 'settings'")
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
@@ -14,27 +16,32 @@
 ; str -> string?
 ; rgx -> regex expression to split string on
 ; vectors will work perfectly for us since the boards are 0 based
-(defn string-to-vector
-  "Split a str on rgx"
+(defn string->vector
+  "Split a string on a regular expression, return a vector of the results"
   [str rgx]
   (str/split str rgx))
 
 ; (route-by-input-type v) -> nil?
 ; v -> vector? of string?
 (defn route-by-input-type
-  "Call a function in input-routes based on the first item in v"
+  "Given a vector of strings, v, call a function in input-routes based
+  on the first string in v"
   [v]
   (let [type (v 0)]
     ; make sure v is a key in input-routes
-    (if (contains? input-routes v)
+    (if (contains? input-routes type)
       ((input-routes type))
-      (println "Error: can't find: " v))))
+      (println "Error: can't find: " type))))
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
 ; arg -> string?
 (defn available-for-move?
-  "Returns idx if arg = '-1', else returns false"
+  "Helper function for determining which macroboard(s) a move can be
+  made in. A value of -1 in the macroboard list indicates a move
+  can be made in the corresponding macroboard. Given an index of an
+  argument in a seq and the value of the argument, return the index if
+  the arg = -1, otherwise return false."
   [idx arg]
   (if (= arg "-1")
     idx
@@ -43,13 +50,13 @@
 ; (macroboard-move-list str) -> list? of false? or int?
 ; str -> string? representing the macroboard
 (defn macroboard-move-list
-  "Return a list where each item corresponds to the macroboard index.
+  "Return a list which helps in determining in which macroboards a move can be made. 
   The value at each position is false if the macroboard tile is not available for
-  a move or the position of the macroboard tile if the tile is available for
-  a move"
+  a move. The value is an integer corresponding to the macroboard position if
+  the macroboard is available for a move"
   [str]
-  ; map-indexed gives us the item and it's index in a seq
-  (map-indexed available-for-move? (string-to-vector str #",")))
+  ; map-indexed gives us the item and it's index within a seq
+  (map-indexed available-for-move? (string->vector str #",")))
 
 ; (big-squares-available str) -> list?
 ; str -> string?
@@ -57,20 +64,23 @@
   "Return a list of macorboard squares that a move can be made in"
   [str]
   (let [lst (macroboard-move-list str)]
+    ; macroboard-move-list is a list of false and/or integers
     ; remove false values from the list, leaving us with macroboard tile numbers
     (filter #(not (= false %)) lst)))
 
 ; (upper-left-macro-column macro_num) -> int?
 ; macro_num -> int?
 (defn upper-left-macro-column
-  "Return the upper left column of a macroboard"
+  "Return the upper left column of a macroboard
+  This returns where on the big board interal column 0 lies"
   [macro_num]
    (+ (mod macro_num 3) (* 2 (mod macro_num 3))))
 
 ; (upper-left-macro-row macro_num) -> int?
 ; macro_num -> int?
 (defn upper-left-macro-row
-  "Return the upper left row of a macroboard"
+  "Return the upper left row of a macroboard.
+  This returns where on the big board internal macroboard row 0 lies"
   [macro_num]
   (+ (quot macro_num 3) (* 2 (quot macro_num 3))))
 
@@ -78,8 +88,8 @@
 ; index -> int? index within a macroboard tile
 (defn internal-macroboard-column
   "Return the column number from 0 to 2 that an index of 0 to 8
-  would belong to.  This is for when we only consider the moves
-  inside a macroboard"
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
   [index]
   (mod index 3))
 
@@ -87,9 +97,10 @@
 ; index -> int? index within a macroboard tile
 (defn internal-macroboard-row
   "Return the row number from 0 to 2 that an index of 0 to 8
-  would belong to.  This is for when we only consider the moves
-  inside a macroboard"
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
   [index]
+  ; quot is the quotient function, which is the same as floor
   (quot index 3))
 
 ; (internal-macro-col->board-col macro-num index) -> int?
@@ -122,7 +133,9 @@
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
 (defn output-string
-  "Return a string in the correct format for output to the game"
+  "Return a string in the correct format for output to the game.
+  Expects a list whose first item is the column number and whose
+  second item is a row number"
   [move-lst]
   (str "place_move " (first move-lst) " " (second move-lst)))
 
@@ -132,7 +145,7 @@
   "Use java.io.BufferedReader and .BufferedWriter to read
   continuous user input
 
-  Stop by typing 'end' "
+  Stop listening by typing 'end' "
   []
   (println "Now listening for input")
   (let [rdr (java.io.BufferedReader. *in*)
@@ -151,7 +164,7 @@
 ; row -> int?
 ; col -> int?
 (defn field-index
-  "return the field index for a given board row and column"
+  "Return the index from 0 to 80 given row and column numbers"
   [row col]
   (+ (* 9 row) col))
 
