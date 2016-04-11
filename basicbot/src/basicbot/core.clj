@@ -4,8 +4,10 @@
 
 ; input-routes -> map?
 (def input-routes
-  "key is potential first argument for input
-  and value is function to call"
+  "A map for referencing functions to call based on the
+  first word of the game input string. The keys are the
+  potential first words, the values are the functions to
+  call."
   {"settings" #(println "The type is: 'settings'")
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
@@ -15,26 +17,31 @@
 ; rgx -> regex expression to split string on
 ; vectors will work perfectly for us since the boards are 0 based
 (defn string-to-vector
-  "Split a str on rgx"
+  "Split a string on a regular expression"
   [str rgx]
   (str/split str rgx))
 
 ; (route-by-input-type v) -> nil?
 ; v -> vector? of string?
 (defn route-by-input-type
-  "Call a function in input-routes based on the first item in v"
+  "Given a vector of strings, v, call a function in input-routes based
+  on the first string in v"
   [v]
   (let [type (v 0)]
     ; make sure v is a key in input-routes
-    (if (contains? input-routes v)
+    (if (contains? input-routes type)
       ((input-routes type))
-      (println "Error: can't find: " v))))
+      (println "Error: can't find: " type))))
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
 ; arg -> string?
 (defn available-for-move?
-  "Returns idx if arg = '-1', else returns false"
+  "Helper function for determining which macroboard(s) a move can be
+  made in. A value of -1 in the macroboard list indicates a move
+  can be made in the corresponding macroboard. Given an index of an
+  argument in a seq and the value of the argument, return the index if
+  the arg = -1, otherwise return false."
   [idx arg]
   (if (= arg "-1")
     idx
@@ -43,12 +50,12 @@
 ; (macroboard-move-list str) -> list? of false? or int?
 ; str -> string? representing the macroboard
 (defn macroboard-move-list
-  "Return a list where each item corresponds to the macroboard index.
+  "Return a list which helps in determining in which macroboards a move can be made. 
   The value at each position is false if the macroboard tile is not available for
-  a move or the position of the macroboard tile if the tile is available for
-  a move"
+  a move. The value is an integer corresponding to the macroboard position if
+  the macroboard is available for a move"
   [str]
-  ; map-indexed gives us the item and it's index in a seq
+  ; map-indexed gives us the item and it's index within a seq
   (map-indexed available-for-move? (string-to-vector str #",")))
 
 ; (big-squares-available str) -> list?
@@ -57,6 +64,7 @@
   "Return a list of macorboard squares that a move can be made in"
   [str]
   (let [lst (macroboard-move-list str)]
+    ; macroboard-move-list is a list of false and/or integers
     ; remove false values from the list, leaving us with macroboard tile numbers
     (filter #(not (= false %)) lst)))
 
