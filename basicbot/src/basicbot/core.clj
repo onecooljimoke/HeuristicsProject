@@ -71,14 +71,16 @@
 ; (upper-left-macro-column macro_num) -> int?
 ; macro_num -> int?
 (defn upper-left-macro-column
-  "Return the upper left column of a macroboard"
+  "Return the upper left column of a macroboard
+  This returns where on the big board interal column 0 lies"
   [macro_num]
    (+ (mod macro_num 3) (* 2 (mod macro_num 3))))
 
 ; (upper-left-macro-row macro_num) -> int?
 ; macro_num -> int?
 (defn upper-left-macro-row
-  "Return the upper left row of a macroboard"
+  "Return the upper left row of a macroboard.
+  This returns where on the big board internal macroboard row 0 lies"
   [macro_num]
   (+ (quot macro_num 3) (* 2 (quot macro_num 3))))
 
@@ -86,8 +88,8 @@
 ; index -> int? index within a macroboard tile
 (defn internal-macroboard-column
   "Return the column number from 0 to 2 that an index of 0 to 8
-  would belong to.  This is for when we only consider the moves
-  inside a macroboard"
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
   [index]
   (mod index 3))
 
@@ -95,9 +97,10 @@
 ; index -> int? index within a macroboard tile
 (defn internal-macroboard-row
   "Return the row number from 0 to 2 that an index of 0 to 8
-  would belong to.  This is for when we only consider the moves
-  inside a macroboard"
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
   [index]
+  ; quot is the quotient function, which is the same as floor
   (quot index 3))
 
 ; (internal-macro-col->board-col macro-num index) -> int?
@@ -130,7 +133,9 @@
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
 (defn output-string
-  "Return a string in the correct format for output to the game"
+  "Return a string in the correct format for output to the game.
+  Expects a list whose first item is the column number and whose
+  second item is a row number"
   [move-lst]
   (str "place_move " (first move-lst) " " (second move-lst)))
 
@@ -140,7 +145,7 @@
   "Use java.io.BufferedReader and .BufferedWriter to read
   continuous user input
 
-  Stop by typing 'end' "
+  Stop listening by typing 'end' "
   []
   (println "Now listening for input")
   (let [rdr (java.io.BufferedReader. *in*)
@@ -156,6 +161,7 @@
     (.close rdr)))
 
 (defn field-index
+  "Return the index from 0 to 80 given row and column numbers"
   [row col]
   (+ (* 9 row) col))
 
