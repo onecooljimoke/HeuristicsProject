@@ -1,6 +1,6 @@
-(ns basicbot.core-test
+(ns basicbot.io-test
   (:use midje.sweet)
-  (:require [basicbot.core :refer :all]))
+  (:require [basicbot.io.io :refer :all]))
 
 ; example tests
 ; basic form:
@@ -15,6 +15,3 @@
   (fact "this is also true"
     (let [x 1]
       (= 1 x) => true)))
-
-
-
