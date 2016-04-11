@@ -1,4 +1,6 @@
-(ns basicbot.board.board)
+(ns basicbot.board.board
+  (:require [basicbot.board.board-math :refer :all]
+            [clojure.string :as str]))
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
@@ -13,6 +15,15 @@
   (if (= arg "-1")
     idx
     false))
+
+; (string-to-vector str rgx) -> vector? of string?
+; str -> string?
+; rgx -> regex expression to split string on
+; vectors will work perfectly for us since the boards are 0 based
+(defn string->vector
+  "Split a string on a regular expression, return a vector of the results"
+  [str rgx]
+  (str/split str rgx))
 
 ; (macroboard-move-list str) -> list? of false? or int?
 ; str -> string? representing the macroboard
@@ -34,6 +45,20 @@
     ; macroboard-move-list is a list of false and/or integers
     ; remove false values from the list, leaving us with macroboard tile numbers
     (filter #(not (= false %)) lst)))
+
+; (macro-get-top-row)
+; macro-board-num -> int?
+(defn macro-get-top-row
+  "returns the top row contents within a given macroboard"
+  [macro-board-num]
+  (let [upper-left-cell (field-index (upper-left-macro-row macro-board-num) 
+                                     (upper-left-macro-column macro-board-num))]
+    (let [upper-mid-cell (+ upper-left-cell 1)]
+      (let [upper-right-cell (+ upper-left-cell 2)] 
+        (let [top-row (list upper-left-cell 
+                            upper-mid-cell 
+                            upper-right-cell)]
+          top-row)))))
 
 ; (parse-macro-board)
 ; mb-num -> int?
@@ -68,4 +93,5 @@
   (let [mb-cell-values (map (fn [idx] (nth field idx)) mb-cells)]
     (let [mb-cells-available (map macro-board-cell-available? (range 9) mb-cell-values)]
       (filter #(not (= false %)) mb-cells-available))))
+
 

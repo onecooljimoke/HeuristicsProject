@@ -77,16 +77,4 @@
   [crnt-field-cell]
   (let [next-row-field-cell (+ crnt-field-cell 9)] next-row-field-cell))
 
-; (macro-get-top-row)
-; macro-board-num -> int?
-(defn macro-get-top-row
-  "returns the top row contents within a given macroboard"
-  [macro-board-num]
-  (let [upper-left-cell (field-index (upper-left-macro-row macro-board-num) 
-                                     (upper-left-macro-column macro-board-num))]
-    (let [upper-mid-cell (+ upper-left-cell 1)]
-      (let [upper-right-cell (+ upper-left-cell 2)] 
-        (let [top-row (list upper-left-cell 
-                            upper-mid-cell 
-                            upper-right-cell)]
-          top-row)))))
+

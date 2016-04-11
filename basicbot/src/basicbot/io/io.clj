@@ -10,15 +10,6 @@
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
 
-; (string-to-vector str rgx) -> vector? of string?
-; str -> string?
-; rgx -> regex expression to split string on
-; vectors will work perfectly for us since the boards are 0 based
-(defn string->vector
-  "Split a string on a regular expression, return a vector of the results"
-  [str rgx]
-  (str/split str rgx))
-
 ; (route-by-input-type v) -> nil?
 ; v -> vector? of string?
 (defn route-by-input-type
@@ -30,18 +21,6 @@
     (if (contains? input-routes type)
       ((input-routes type))
       (println "Error: can't find: " type))))
-
-
-; (convert-move-for-output macro-num move-lst) -> list?
-; macro-num -> int? index of the macroboard
-; index -> int? index of move within the macroboard tile 
-(defn convert-move-for-output
-  "Convert a move inside a macroboard to a row and column in the big
-  board so we can output the move to the game. The returned list
-  holds the column first and then the row"
-  [macro-num index]
-  (list (internal-macro-col->board-col macro-num index)
-        (internal-macro-row->board-row macro-num index)))
 
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
