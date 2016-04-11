@@ -147,9 +147,34 @@
     ; closing wrt causes the program to crash
     (.close rdr)))
 
+; (field-index)
+; row -> int?
+; col -> int?
 (defn field-index
+  "return the field index for a given board row and column"
   [row col]
   (+ (* 9 row) col))
+
+; (next-row-same-cell)
+; crnt-field-cell -> int?
+(defn next-row-same-cell
+  "returns the same cell in the next row for a given field index"
+  [crnt-field-cell]
+  (let [next-row-field-cell (+ crnt-field-cell 9)] next-row-field-cell))
+
+; (macro-get-top-row)
+; macro-board-num -> int?
+(defn macro-get-top-row
+  "returns the top row contents within a given macroboard"
+  [macro-board-num]
+  (let [upper-left-cell (field-index (upper-left-macro-row macro-board-num) 
+                                     (upper-left-macro-column macro-board-num))]
+    (let [upper-mid-cell (+ upper-left-cell 1)]
+      (let [upper-right-cell (+ upper-left-cell 2)] 
+        (let [top-row (list upper-left-cell 
+                            upper-mid-cell 
+                            upper-right-cell)]
+          top-row)))))
 
 ; (parse-macro-board)
 ; mb-num -> int?
@@ -157,48 +182,47 @@
   "Given a macroboard number returns a list of values from 
   left to right top to bottom"
   [mb-num]
-  (def upper-left-cell (field-index (upper-left-macro-row mb-num) (upper-left-macro-column mb-num) ))
   (cond 
-    (and (>= mb-num 0) (<= mb-num 8)) 
-    (def board-list (list
-        ; first three cells
-        upper-left-cell (+ upper-left-cell 1) (+ upper-left-cell 2)
-        ; next rows three cells
-        (+ upper-left-cell 9) (+ upper-left-cell 10) (+ upper-left-cell 11)
-        ; last rows three cells
-        (+ upper-left-cell 18) (+ upper-left-cell 19) (+ upper-left-cell 20)))
-    :else (def board-list '0))
-        board-list)  ;; default - return empty board-list, ie, no cells for an invalid macroboard number
+    (and (>= mb-num 0) (<= mb-num 8))
+    (let [top-row (macro-get-top-row mb-num)]
+      (let [mid-row (map next-row-same-cell (into [] top-row))]
+        (let [bottom-row (map next-row-same-cell (into [] mid-row))]
+          (flatten (list top-row mid-row bottom-row)))))
+    :else (list 0)))
+
+; (macro-board-cell-available?)
+; idx -> int?
+; val -> int?
+(defn macro-board-cell-available? 
+  "returns the idx provided if val is 0, 
+  indicating an avilable cell, or false otherwise"
+  [idx val]
+  (if (= val 0) idx false))
 
 ; (macro-board-available-cells)
 ; mb-cells -> list? of int?
 ; field -> list? of int?, The complete playing field in the current game state
 (defn macro-board-available-cells
+  "returns the list of indices of available cells inside the macroboard"
   [mb-cells field]
   ; (nth field (nth mb-cells 3))
-  (def available-cells '())
-  (loop [idx 8]
-    (when (> idx -1)
-      (def crnt-cell (nth field (nth mb-cells idx)))
-      (cond (= crnt-cell 0)
-            ; some shady business because "(conj available-cells crnt-cell)" wasn't working 
-            (def available-cells (conj available-cells idx)))
-      (recur (- idx 1)) ) )
-  available-cells)
+  (let [mb-cell-values (map (fn [idx] (nth field idx)) mb-cells)]
+    (let [mb-cells-available (map macro-board-cell-available? (range 9) mb-cell-values)]
+      (filter #(not (= false %)) mb-cells-available))))
+
+; (pick-move)
+; mb-available-cells -> int?
+(defn pick-move
+  "returns a valid index in the macroboard list if
+  the list is non-empty, otherwise it returns -1"
+  [mb-available-cells]
+  (if (empty? mb-available-cells)
+    -1
+    (rand-nth mb-available-cells)))
 
 (defn -main
   ""
   [& args]
-  ; (read-input)
-  
-  ; (println (parse-macro-board 0)) ;; print the resulting field cells from the given macroboard number
-  ; (println (parse-macro-board -1))    ;; print the resulting field cells from the given invalid macroboard number
-  ; (println (parse-macro-board 10))    ;; print the resulting field cells from the given invalid macroboard number
+  ;(read-input)
 
-
-  ; (def mb (parse-macro-board 0))  ;; example macroboard number
-  ; (def field '(1,2,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))  ;; example field input
-  ; (println mb)  ;; print example macroboard number
-  ; (println field)   ;; print example field input
-  ; (println (macro-board-available-cells mb field))  ;; print the available cells from macroboard 0 (that is field cells {0, 1, 2, 9, 10, 11, 18, 19, 20})
 )
