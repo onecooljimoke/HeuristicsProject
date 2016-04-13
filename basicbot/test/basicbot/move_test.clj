@@ -23,4 +23,4 @@
 
 (facts "output stage"
   (fact "output is a move string"
-    (output-stage 0 0) => "place_move 0 0"))
+    (output-stage '(0 0)) => "place_move 0 0"))

@@ -1,6 +1,7 @@
 (ns basicbot.io.io
   "Functions for input and output"
-  (:require [basicbot.board.board :refer :all]))
+  (:require [basicbot.board.board :as board]
+            [basicbot.move.move :as move]))
 
 ; input-routes -> map?
 (def input-routes
@@ -8,9 +9,9 @@
   first word of the game input string. The keys are the
   potential first words, the values are the functions to
   call."
-  {"settings" game-input-starts-with-settings 
-   "action" #(println "The type is: 'action'")
-   "move" #(println "The type is: 'move'")})
+  {"settings" board/game-input-starts-with-settings 
+   "action" board/game-input-starts-with-update 
+   "move" move/game-input-starts-with-move})
 
 
 ; (route-by-input-type v) -> nil?
@@ -43,5 +44,5 @@
       ; flush the buffer to output
       (.flush wrt))
     ; close rdr because we're considerate programmers
-    ; closing wrt causes the program to crash
+    ; closing wrt seems to cause the program to crash
     (.close rdr)))

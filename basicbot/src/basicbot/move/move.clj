@@ -22,6 +22,11 @@
   [board-vec]
   (pick-move (big-squares-available board-vec)))
 
+; Hey, Nicole!  Put your damn function here!
+(defn choose-move-stage
+  [macro-num]
+  '(5 5))
+
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
 (defn output-string
@@ -32,6 +37,8 @@
   (str "place_move " (first move-lst) " " (second move-lst)))
 
 ; (output-stage macro-num macro-idx) -> string?
+; input should be a list that contians macro-num and macro-idx
+; in first two positions
 ; macro-num -> int?
 ; macro-idx -> int?
 (defn output-stage
@@ -40,5 +47,20 @@
   to it's coordinates on the big board and return
   a string in the proper format for output to the
   game server"
-  [macro-num macro-idx]
+  [[macro-num macro-idx]]
   (output-string (convert-move-for-output macro-num macro-idx)))
+
+; (game-input-starts-with-move) -> string?
+(defn game-input-starts-with-move
+  "Choose a move on the gameboard and return a string
+  in the correct format for communicating a move to the
+  game server"
+  ; I put a rest argument here so function conforms with the 
+  ; settings and actions signatures 
+  ; This makes it easier to route by input in io.clj
+  [& args]
+  (->
+   @macroboard-vector
+   (macroboard-stage)
+   (choose-move-stage)
+   (output-stage)))
