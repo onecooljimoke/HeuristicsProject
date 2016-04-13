@@ -94,6 +94,30 @@
 7. Transform the selected move to a row and column in overall board
 8. Output the selected move
 
+### Program Flow
+1. Input
+   - (read-input)
+   - settings - store both bot ids
+   - update - store current board and fields
+   - action - move!
+   - use atoms to store values
+2. Macroboard list
+   - where can we move
+     + (big-squares-avaiable)
+   - where should we move
+     + (pick-move)
+     + send macroboard# to next step
+3. Inside macroboard
+   - where can we move?
+     + (parse-macroboard)
+     + (macroboard-available-cells)
+   - where should we move?
+     + (pick-move)
+     + send index and macroboard# to output
+4. Output Move
+   - (convert-move-for-output)
+   - (output-string)
+
 ### Goal 2: Research game strategy
 1. Research tic tac toe algorithmic strategy
 2. Research alpha/beta pruning

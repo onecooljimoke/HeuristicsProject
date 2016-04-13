@@ -2,9 +2,20 @@
   (:require [clara.rules :refer :all])
   (:gen-class))
 
+; what's the deal with these record things?
+; http://www.braveclojure.com/multimethods-records-protocols/#Records
+; a record is like declaring a new data type (under the hood it's
+; actually a java class)
+; records are really similar to a map, they have defined properties
+; and even print to the screen like a map
 (defrecord SupportRequest [client level])
 
 (defrecord ClientRepresentative [name client])
+
+(defrule say-my-name
+  [ClientRepresentative (= ?name name)]
+  =>
+  (println "Your name is: " ?name))
 
 (defrule is-important
   "Find important support requests."
@@ -19,6 +30,8 @@
   =>
   (println "Notify" ?name "that"  
           ?client "has a new support request!"))
+
+
 
 (defn -main
   "I don't do a whole lot ... yet."
