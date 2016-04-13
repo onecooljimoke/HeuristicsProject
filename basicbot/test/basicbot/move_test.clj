@@ -20,3 +20,7 @@
   (let [board-vec ["-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1"]]
     (fact "returns an integer"
       (macroboard-stage board-vec) => integer?)))
+
+(facts "output stage"
+  (fact "output is a move string"
+    (output-stage 0 0) => "place_move 0 0"))

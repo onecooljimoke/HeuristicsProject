@@ -53,17 +53,6 @@
   [macro-num index]
   (+ (upper-left-macro-row macro-num) (internal-macroboard-row index)))
 
-; (convert-move-for-output macro-num move-lst) -> list?
-; macro-num -> int? index of the macroboard
-; index -> int? index of move within the macroboard tile 
-(defn convert-move-for-output
-  "Convert a move inside a macroboard to a row and column in the big
-  board so we can output the move to the game. The returned list
-  holds the column first and then the row"
-  [macro-num index]
-  (list (internal-macro-col->board-col macro-num index)
-        (internal-macro-row->board-row macro-num index)))
-
 ; (field-index)
 ; row -> int?
 ; col -> int?

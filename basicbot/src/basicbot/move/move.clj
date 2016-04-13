@@ -22,4 +22,23 @@
   [board-vec]
   (pick-move (big-squares-available board-vec)))
 
+; (output-string move-lst) -> string?
+; move-lst -> list? of string?
+(defn output-string
+  "Return a string in the correct format for output to the game.
+  Expects a list whose first item is the column number and whose
+  second item is a row number"
+  [move-lst]
+  (str "place_move " (first move-lst) " " (second move-lst)))
 
+; (output-stage macro-num macro-idx) -> string?
+; macro-num -> int?
+; macro-idx -> int?
+(defn output-stage
+  "Given the index of a field within a macroboard,
+  and the macroboard number, convert the location
+  to it's coordinates on the big board and return
+  a string in the proper format for output to the
+  game server"
+  [macro-num macro-idx]
+  (output-string (convert-move-for-output macro-num macro-idx)))

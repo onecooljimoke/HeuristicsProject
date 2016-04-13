@@ -25,15 +25,6 @@
       ((input-routes type) v)
       (println "Error: can't find: " type))))
 
-; (output-string move-lst) -> string?
-; move-lst -> list? of string?
-(defn output-string
-  "Return a string in the correct format for output to the game.
-  Expects a list whose first item is the column number and whose
-  second item is a row number"
-  [move-lst]
-  (str "place_move " (first move-lst) " " (second move-lst)))
-
 ;(read-input)
 ; listen to standard-input and write it to standard output
 (defn read-input

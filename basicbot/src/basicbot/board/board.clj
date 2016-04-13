@@ -10,7 +10,8 @@
 (def macroboard-vector(atom []))
 (def field-vector(atom []))
 
-
+; (determine-opponent-id id-str) -> string?
+; id-str -> string
 (defn determine-opponent-id
   "The game server only tells us what our bot id is. The only
   possible ids are '1' or '2'. Given our bot id, return the
@@ -20,6 +21,8 @@
     "2"
     "1"))
 
+; (game-input-starts-with-settings v) -> nil
+; v -> vector? of string?
 (defn game-input-starts-with-settings 
   "Input from the game server that starts with 'settings' is
   intended to update static information about the game such
@@ -44,6 +47,8 @@
   [str rgx]
   (str/split str rgx))
 
+; (game-input-starts-with-update v) -> nil
+; v -> vector? of string?
 (defn game-input-starts-with-update
   "Input from the game server that starts with update is
   intended to update information that changes periodically
@@ -146,4 +151,13 @@
     (let [mb-cells-available (map macro-board-cell-available? (range 9) mb-cell-values)]
       (filter #(not (= false %)) mb-cells-available))))
 
-
+; (convert-move-for-output macro-num move-lst) -> list?
+; macro-num -> int? index of the macroboard
+; index -> int? index of move within the macroboard tile 
+(defn convert-move-for-output
+  "Convert a move inside a macroboard to a row and column in the big
+  board so we can output the move to the game. The returned list
+  holds the column first and then the row"
+  [macro-num index]
+  (list (internal-macro-col->board-col macro-num index)
+        (internal-macro-row->board-row macro-num index)))
