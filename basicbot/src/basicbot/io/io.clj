@@ -8,7 +8,7 @@
   first word of the game input string. The keys are the
   potential first words, the values are the functions to
   call."
-  {"settings" update-settings 
+  {"settings" game-input-starts-with-settings 
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
 

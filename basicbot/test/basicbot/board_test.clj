@@ -52,12 +52,12 @@
                                       (reset! our-bot-id "0")
                                       (reset! opponent-bot-id "0")))]
   (fact "if our bot id is 1, opponent bot id is 2"
-    (update-settings ["settings" "your_botid" "1"])
+    (game-input-starts-with-settings ["settings" "your_botid" "1"])
     (and
      (= @our-bot-id "1")
      (= @opponent-bot-id "2")) => true)
   (fact "if our bot id is 2, opponent bot id is 1"
-    (update-settings ["settings" "your_botid" "2"])
+    (game-input-starts-with-settings ["settings" "your_botid" "2"])
     (and
      (= @our-bot-id "2")
      (= @opponent-bot-id "1")) => true))

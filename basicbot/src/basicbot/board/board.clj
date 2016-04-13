@@ -20,7 +20,7 @@
     "2"
     "1"))
 
-(defn update-settings
+(defn game-input-starts-with-settings 
   "Input from the game server that starts with 'settings' is
   intended to update static information about the game such
   as bot ids. Update the static variables that hold these
