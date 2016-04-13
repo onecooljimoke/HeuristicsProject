@@ -3,6 +3,38 @@
   (:require [basicbot.board.board-math :refer :all]
             [clojure.string :as str]))
 
+;;; These atoms hold values that may need to be accessed by
+;;; more than one function or namespace
+(def our-bot-id (atom "0"))
+(def opponent-bot-id (atom "0"))
+(def macroboard-list (atom (list)))
+(def fields-list (atom (list)))
+
+
+(defn determine-opponent-id
+  "The game server only tells us what our bot id is. The only
+  possible ids are '1' or '2'. Given our bot id, return the
+  opponent id"
+  [id-str]
+  (if (= id-str "1")
+    "2"
+    "1"))
+
+(defn update-settings
+  "Input from the game server that starts with 'settings' is
+  intended to update static information about the game such
+  as bot ids. Update the static variables that hold these
+  values give a vector created by splitting the input string.
+  Currently we are only interested in bot-id settings"
+  [v]
+  (cond
+    ; settings input will look like: "settings your_botid i"
+    (= (v 1) "your_botid")
+    (let [my-id (v 2)
+          opponent-id (determine-opponent-id (v 2))]
+      (swap! our-bot-id (fn [current_state] my-id))
+      (swap! opponent-bot-id (fn [current_state] opponent-id)))))
+
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
 ; arg -> string?

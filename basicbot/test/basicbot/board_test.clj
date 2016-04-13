@@ -40,6 +40,28 @@
     (fact "returns a vector of strings if rgx is a comma"
       (string->vector comma-input #",") => result)))
 
+(facts "determine opponent bot id correctly"
+  (fact "if our bot id is '1', opponent bot id is '2'"
+    (determine-opponent-id "1") => "2")
+  (fact "if our bot id is '2', opponent bot id is '1'"
+    (determine-opponent-id "2") => "1"))
+
+; testing that bot ids get updated correctly
+; since we're testing mutable state, we need to use with-state-changes
+(with-state-changes [(before :facts (do
+                                      (reset! our-bot-id "0")
+                                      (reset! opponent-bot-id "0")))]
+  (fact "if our bot id is 1, opponent bot id is 2"
+    (update-settings ["settings" "your_botid" "1"])
+    (and
+     (= @our-bot-id "1")
+     (= @opponent-bot-id "2")) => true)
+  (fact "if our bot id is 2, opponent bot id is 1"
+    (update-settings ["settings" "your_botid" "2"])
+    (and
+     (= @our-bot-id "2")
+     (= @opponent-bot-id "1")) => true))
+
 (facts "finding available macroboard squares"
   (fact "return a list of -1 or false values"
     (let [board-str "0,1,2,-1,0,1,2,-1,0"

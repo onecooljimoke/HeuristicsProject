@@ -1,5 +1,6 @@
 (ns basicbot.io.io
-  "Functions for input and output")
+  "Functions for input and output"
+  (:require [basicbot.board.board :refer :all]))
 
 ; input-routes -> map?
 (def input-routes
@@ -7,9 +8,10 @@
   first word of the game input string. The keys are the
   potential first words, the values are the functions to
   call."
-  {"settings" #(println "The type is: 'settings'")
+  {"settings" update-settings 
    "move" #(println "The type is: 'move'")
    "action" #(println "The type is: 'action'")})
+
 
 ; (route-by-input-type v) -> nil?
 ; v -> vector? of string?
@@ -20,7 +22,7 @@
   (let [type (v 0)]
     ; make sure v is a key in input-routes
     (if (contains? input-routes type)
-      ((input-routes type))
+      ((input-routes type) v)
       (println "Error: can't find: " type))))
 
 ; (output-string move-lst) -> string?
