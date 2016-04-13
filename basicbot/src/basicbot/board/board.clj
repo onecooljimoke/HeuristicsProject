@@ -7,8 +7,8 @@
 ;;; more than one function or namespace
 (def our-bot-id (atom "0"))
 (def opponent-bot-id (atom "0"))
-(def macroboard-list (atom (list)))
-(def fields-list (atom (list)))
+(def macroboard-vector(atom []))
+(def field-vector(atom []))
 
 
 (defn determine-opponent-id
@@ -24,7 +24,7 @@
   "Input from the game server that starts with 'settings' is
   intended to update static information about the game such
   as bot ids. Update the static variables that hold these
-  values give a vector created by splitting the input string.
+  values given a vector created by splitting the input string.
   Currently we are only interested in bot-id settings"
   [v]
   (cond
@@ -34,6 +34,34 @@
           opponent-id (determine-opponent-id (v 2))]
       (swap! our-bot-id (fn [current_state] my-id))
       (swap! opponent-bot-id (fn [current_state] opponent-id)))))
+
+; (string-to-vector str rgx) -> vector? of string?
+; str -> string?
+; rgx -> regex expression to split string on
+; vectors will work perfectly for us since the boards are 0 based
+(defn string->vector
+  "Split a string on a regular expression, return a vector of the results"
+  [str rgx]
+  (str/split str rgx))
+
+(defn game-input-starts-with-update
+  "Input from the game server that starts with update is
+  intended to update information that changes periodically
+  throughout the game such as the field list and the macroboard
+  list. Update the static variables that hold these values given
+  a vector created by splitting the input string. Currently
+  we're only interested in macroboard and field"
+  [v]
+  ; settings input will look like:
+  ; "update game field <str>"
+  ; "update game macroboard <str>
+  (cond
+    (and (= (v 1) "game")
+         (= (v 2) "field"))
+    (swap! field-vector (fn [current_state] (string->vector (v 3) #",")))
+    (and (= (v 1) "game")
+         (= (v 2) "macroboard"))
+    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #",")))))
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
@@ -49,32 +77,23 @@
     idx
     false))
 
-; (string-to-vector str rgx) -> vector? of string?
-; str -> string?
-; rgx -> regex expression to split string on
-; vectors will work perfectly for us since the boards are 0 based
-(defn string->vector
-  "Split a string on a regular expression, return a vector of the results"
-  [str rgx]
-  (str/split str rgx))
-
 ; (macroboard-move-list str) -> list? of false? or int?
-; str -> string? representing the macroboard
+; v -> vector? of string? representing the macroboard
 (defn macroboard-move-list
   "Return a list which helps in determining in which macroboards a move can be made. 
   The value at each position is false if the macroboard tile is not available for
   a move. The value is an integer corresponding to the macroboard position if
   the macroboard is available for a move"
-  [str]
+  [v]
   ; map-indexed gives us the item and it's index within a seq
-  (map-indexed available-for-move? (string->vector str #",")))
+  (map-indexed available-for-move? v))
 
 ; (big-squares-available str) -> list?
 ; str -> string?
 (defn big-squares-available
   "Return a list of macorboard squares that a move can be made in"
-  [str]
-  (let [lst (macroboard-move-list str)]
+  [v]
+  (let [lst (macroboard-move-list v)]
     ; macroboard-move-list is a list of false and/or integers
     ; remove false values from the list, leaving us with macroboard tile numbers
     (filter #(not (= false %)) lst)))

@@ -62,16 +62,28 @@
      (= @our-bot-id "2")
      (= @opponent-bot-id "1")) => true))
 
+; testing that macroboard and field vectors get updated correctly
+; testing atoms so use with-state-changes
+(with-state-changes [(before :facts (do
+                                      (reset! field-vector [])
+                                      (reset! macroboard-vector [])))]
+  (fact "the input is 'update game field"
+    (game-input-starts-with-update ["update" "game" "field" "0,1,2"])
+    (= @field-vector ["0" "1" "2"]) => true)
+  (fact "the input is 'update game macroboard"
+    (game-input-starts-with-update ["update" "game" "macroboard" "-1,0,1"])
+    (= @macroboard-vector ["-1" "0" "1"])))
+
 (facts "finding available macroboard squares"
   (fact "return a list of -1 or false values"
-    (let [board-str "0,1,2,-1,0,1,2,-1,0"
+    (let [board-vec ["0" "1" "2" "-1" "0" "1" "2" "-1" "0"]
           result '(false false false 3 false false false 7 false)]
-      (macroboard-move-list board-str) => result))
+      (macroboard-move-list board-vec) => result))
 
   (fact "returns macroboard indices that don't have a value of -1"
-    (let [board-str "0,1,2,-1,0,1,2,-1,0"
+    (let [board-vec ["0" "1" "2" "-1" "0" "1" "2" "-1" "0"]
           result '(3 7)]
-      (big-squares-available board-str) => result))
+      (big-squares-available board-vec) => result))
 
   (fact "returns empty list if no values of -1"
     (let [board-str "0,1,2,0,1,2,0,1,2"

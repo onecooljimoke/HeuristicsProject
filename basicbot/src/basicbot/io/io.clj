@@ -9,8 +9,8 @@
   potential first words, the values are the functions to
   call."
   {"settings" game-input-starts-with-settings 
-   "move" #(println "The type is: 'move'")
-   "action" #(println "The type is: 'action'")})
+   "action" #(println "The type is: 'action'")
+   "move" #(println "The type is: 'move'")})
 
 
 ; (route-by-input-type v) -> nil?
