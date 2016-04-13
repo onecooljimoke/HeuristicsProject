@@ -15,3 +15,8 @@
   (fact "this is also true"
     (let [x 1]
       (= 1 x) => true)))
+
+(facts "macroboard stage"
+  (let [board-vec ["-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1"]]
+    (fact "returns an integer"
+      (macroboard-stage board-vec) => integer?)))
