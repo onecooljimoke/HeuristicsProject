@@ -8,36 +8,38 @@
 ; actually a java class)
 ; records are really similar to a map, they have defined properties
 ; and even print to the screen like a map
-(defrecord SupportRequest [client level])
 
-(defrecord ClientRepresentative [name client])
+(defrecord Parents [name mother father])
+(defrecord Request [name])
 
-(defrule say-my-name
-  [ClientRepresentative (= ?name name)]
+(defrule print-ancestors
+  ; rule will match any Request and Parents records on name, mother and father
+  [Request (= ?name name)]
+  [Parents (= ?name name) (= ?mother mother) (= ?father father)]
   =>
-  (println "Your name is: " ?name))
-
-(defrule is-important
-  "Find important support requests."
-  [SupportRequest (= :high level)]
-  =>
-  (println "High support requested!"))
-
-(defrule notify-client-rep
-  "Find the client representative and request support."
-  [SupportRequest (= ?client client)]
-  [ClientRepresentative (= ?client client) (= ?name name)]
-  =>
-  (println "Notify" ?name "that"  
-          ?client "has a new support request!"))
-
+  (if ?mother
+    (do
+      (println ?mother "is an ancestor via" ?name)
+      ; note that inside a rule we need to use insert! with an exclamation, ouside
+      ; the rule use insert without an exclamation
+      (insert! (->Request ?mother))))
+  (if ?father
+    (do
+      (println ?father "is an ancestor via" ?name)
+      (insert! (->Request ?father)))))
 
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (-> (mk-session 'clara-example.core)
-      (insert (->ClientRepresentative "Alice" "Acme")
-              (->SupportRequest "Acme" :high))
+      (insert
+       (->Request "penelope")
+       (->Parents "penelope" "jessica" "jeremy")
+       (->Parents "jessica" "mary-elizabeth" "homer")
+       (->Parents "jeremy" "jenny" "steven")
+       (->Parents "steven" "loree" "john")
+       (->Parents "loree" false "jason")
+       (->Parents "homer" "stephanie" false))
       (fire-rules))
   (println "End of program"))
