@@ -23,7 +23,15 @@
   (pick-move (big-squares-available board-vec)))
 
 ; Hey, Nicole!  Put your damn function here!
+; (choose-move-stage)
+; macro-num -> int?
+; field -> list? of int?
 (defn choose-move-stage
+  "Given a macroboard number, macro-num, and the current 
+  field list, chooses an index inside that macroboard to 
+  be the next move location. Outputs a list containing
+  the macroboard number and the move (index in the 
+  macroboard)."
   [macro-num field]
   (let [cells-available 
         (macro-board-available-cells (parse-macro-board macro-num) field)]
