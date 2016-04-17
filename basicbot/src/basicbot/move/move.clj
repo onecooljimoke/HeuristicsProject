@@ -18,14 +18,17 @@
   "As part of the process for selecting a move,
   given a vector representing the macroboard, determine
   which macroboard locations we can move in, choose a
-  macroboard location, and output the result"
+  macroboard location, and output the result" 
   [board-vec]
   (pick-move (big-squares-available board-vec)))
 
 ; Hey, Nicole!  Put your damn function here!
 (defn choose-move-stage
-  [macro-num]
-  '(5 5))
+  [macro-num field]
+  (let [cells-available 
+        (macro-board-available-cells (parse-macro-board macro-num) field)]
+    (let [move (pick-move cells-available)]
+      (list macro-num move))))
 
 ; (output-string move-lst) -> string?
 ; move-lst -> list? of string?
@@ -62,5 +65,5 @@
   (->
    @macroboard-vector
    (macroboard-stage)
-   (choose-move-stage)
+   (choose-move-stage @field-vector)
    (output-stage)))
