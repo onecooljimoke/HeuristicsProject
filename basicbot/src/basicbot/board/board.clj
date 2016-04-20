@@ -36,7 +36,10 @@
     (let [my-id (v 2)
           opponent-id (determine-opponent-id (v 2))]
       (swap! our-bot-id (fn [current_state] my-id))
-      (swap! opponent-bot-id (fn [current_state] opponent-id)))))
+      (swap! opponent-bot-id (fn [current_state] opponent-id))))
+  ; return nil to make routing easier, we already know what the return value
+  ; of swap is anyway
+  nil)
 
 ; (string-to-vector str rgx) -> vector? of string?
 ; str -> string?
@@ -66,7 +69,10 @@
     (swap! field-vector (fn [current_state] (string->vector (v 3) #",")))
     (and (= (v 1) "game")
          (= (v 2) "macroboard"))
-    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #",")))))
+    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #","))))
+  ; return nil to make routing easier, we already know what the return value 
+  ; of swap is anyway 
+  nil)
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
