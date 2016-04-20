@@ -7,4 +7,4 @@
 (defn -main
   ""
   [& args]
-  (println "hello good lookin!"))
+  (board-io/read-input))

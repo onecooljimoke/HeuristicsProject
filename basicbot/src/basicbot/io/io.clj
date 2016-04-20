@@ -10,8 +10,8 @@
   potential first words, the values are the functions to
   call."
   {"settings" board/game-input-starts-with-settings 
-   "action" board/game-input-starts-with-update 
-   "move" move/game-input-starts-with-move})
+   "update" board/game-input-starts-with-update 
+   "action" move/game-input-starts-with-action})
 
 
 ; (route-by-input-type v) -> nil?
@@ -38,11 +38,15 @@
   (let [rdr (java.io.BufferedReader. *in*)
         wrt (java.io.BufferedWriter. *out*)]
     (doseq [ln (take-while #(not (= "end" %)) (line-seq rdr))]
-      (.write wrt ln)
-      ; .write doesn't print newlines
-      (.newLine wrt)
-      ; flush the buffer to output
-      (.flush wrt))
+      (let [output (route-by-input-type (board/string->vector ln #" "))]
+       (if output
+         (do (.write wrt ln)
+             (.newLine wrt)
+             (.write wrt output)
+             ; .write doesn't print newlines
+             (.newLine wrt)
+             ; flush the buffer to output
+             (.flush wrt)))))
     ; close rdr because we're considerate programmers
     ; closing wrt seems to cause the program to crash
     (.close rdr)))

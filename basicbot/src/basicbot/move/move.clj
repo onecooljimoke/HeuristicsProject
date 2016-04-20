@@ -61,8 +61,8 @@
   [[macro-num macro-idx]]
   (output-string (convert-move-for-output macro-num macro-idx)))
 
-; (game-input-starts-with-move) -> string?
-(defn game-input-starts-with-move
+; (game-input-starts-with-action) -> string?
+(defn game-input-starts-with-action
   "Choose a move on the gameboard and return a string
   in the correct format for communicating a move to the
   game server"
