@@ -144,10 +144,11 @@
   "returns the idx provided if val is 0, 
   indicating an avilable cell, or false otherwise"
   [idx val]
-  (if (= val 0) idx false))
+  (if (= val "0") idx false))
 
 ; (macro-board-available-cells)
-; mb-cells -> list? of int?
+; mb-cells -> list? of int? List of indices in field-vector where macroboard
+;                           values can be found
 ; field -> list? of int?, The complete playing field in the current game state
 (defn macro-board-available-cells
   "returns the list of indices of available cells inside the macroboard"
