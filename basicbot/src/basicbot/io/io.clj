@@ -40,9 +40,7 @@
     (doseq [ln (take-while #(not (= "end" %)) (line-seq rdr))]
       (let [output (route-by-input-type (board/string->vector ln #" "))]
        (if output
-         (do (.write wrt ln)
-             (.newLine wrt)
-             (.write wrt output)
+         (do (.write wrt output)
              ; .write doesn't print newlines
              (.newLine wrt)
              ; flush the buffer to output
