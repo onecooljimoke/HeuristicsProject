@@ -93,6 +93,8 @@
 
 ;;; These atoms hold values that may need to be accessed by
 ;;; more than one function or namespace
+(def round-number (atom "0"))
+(def move-number (atom "0"))
 (def our-bot-id (atom "0"))
 (def opponent-bot-id (atom "0"))
 (def macroboard-vector(atom []))
@@ -118,6 +120,7 @@
   values given a vector created by splitting the input string.
   Currently we are only interested in bot-id settings"
   [v]
+  (when logflag (log "game-input-starts-with-settings called with:" v))
   (cond
     ; settings input will look like: "settings your_botid i"
     (= (v 1) "your_botid")
@@ -151,13 +154,20 @@
   ; settings input will look like:
   ; "update game field <str>"
   ; "update game macroboard <str>
+  (when logflag (log "game-input-starts-with-update called with:" v))
   (cond
     (and (= (v 1) "game")
          (= (v 2) "field"))
     (swap! field-vector (fn [current_state] (string->vector (v 3) #",")))
     (and (= (v 1) "game")
          (= (v 2) "macroboard"))
-    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #","))))
+    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #",")))
+    (and (= (v 1) "game")
+         (= (v 2) "round"))
+    (swap! round-number (fn [current_state] (v 3)))
+    (and (= (v 1) "game")
+         (= (v 2) "move"))
+    (swap! move-number (fn [current_state] (v 3))))
   ; return nil to make routing easier, we already know what the return value 
   ; of swap is anyway 
   nil)
@@ -329,7 +339,12 @@
   ; This makes it easier to route by input in io.clj
   [& args]
   (when logflag
-    (log "passed to game-input-starts-with-action:" args))
+    (log "game-input-starts-with-action called"
+         "game round:" @round-number
+         "game-move:" @move-number
+         "current values:"
+         "field:" @field-vector
+         "macroboard:" @macroboard-vector))
   (->
    @macroboard-vector
    (macroboard-stage)
@@ -374,6 +389,7 @@
   (let [rdr (java.io.BufferedReader. *in*)
         wrt (java.io.BufferedWriter. *out*)]
     (doseq [ln (take-while #(not (= "end" %)) (line-seq rdr))]
+      (when logflag (log "input is:" ln))
       (let [output (route-by-input-type (string->vector ln #" "))]
         (when logflag (log "chosen move:" output))
        (if output
