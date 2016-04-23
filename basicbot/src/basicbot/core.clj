@@ -3,6 +3,17 @@
   (:gen-class))
 
 ; =========================================
+; Logging functionality
+; =========================================
+
+(def logflag true)
+
+(defn log
+  "Write to standard error"
+  [& args]
+  (.println *err* args))
+
+; =========================================
 ; Board Math Functions 
 ; Functions for calculating board positions 
 ; and converting between board positions
@@ -317,6 +328,8 @@
   ; settings and actions signatures 
   ; This makes it easier to route by input in io.clj
   [& args]
+  (when logflag
+    (log "passed to game-input-starts-with-action:" args))
   (->
    @macroboard-vector
    (macroboard-stage)
@@ -358,11 +371,11 @@
 
   Stop listening by typing 'end' "
   []
-  (println "Now listening for input")
   (let [rdr (java.io.BufferedReader. *in*)
         wrt (java.io.BufferedWriter. *out*)]
     (doseq [ln (take-while #(not (= "end" %)) (line-seq rdr))]
       (let [output (route-by-input-type (string->vector ln #" "))]
+        (when logflag (log "chosen move:" output))
        (if output
          (do
            (.write wrt output)
