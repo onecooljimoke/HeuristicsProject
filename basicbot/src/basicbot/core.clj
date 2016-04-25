@@ -1,6 +1,4 @@
-(ns basicbot.core
-  (:require [clojure.string :as str])
-  (:gen-class))
+(ns basicbot.core)
 
 ; =========================================
 ; Logging functionality
@@ -139,7 +137,7 @@
 (defn string->vector
   "Split a string on a regular expression, return a vector of the results"
   [str rgx]
-  (str/split str rgx))
+  (clojure.string/split str rgx))
 
 ; (game-input-starts-with-update v) -> nil
 ; v -> vector? of string?
@@ -340,7 +338,7 @@
   [& args]
   (when logflag
     (log "game-input-starts-with-action called"
-         "game round:" @round-number
+         "game round:" @round-number 
          "game-move:" @move-number
          "current values:"
          "field:" @field-vector
@@ -376,7 +374,12 @@
     ; make sure v is a key in input-routes
     (if (contains? input-routes type)
       ((input-routes type) v)
-      (println "Error: can't find: " type))))
+      (do
+        (log "Error, can't find route:" type)
+        ; explicitly return nil just to be safe
+        ; the default behavior of any route that's not action is
+        ; to return nil
+        nil))))
 
 ;(read-input)
 ; listen to standard-input and write it to standard output
@@ -386,21 +389,17 @@
 
   Stop listening by typing 'end' "
   []
-  (let [rdr (java.io.BufferedReader. *in*)
-        wrt (java.io.BufferedWriter. *out*)]
+  (let [rdr (java.io.BufferedReader. *in*)]
     (doseq [ln (take-while #(not (= "end" %)) (line-seq rdr))]
       (when logflag (log "input is:" ln))
-      (let [output (route-by-input-type (string->vector ln #" "))]
-        (when logflag (log "chosen move:" output))
-       (if output
-         (do
-           (.write wrt output)
-           ; newlines are not automatically written
-           (.newLine wrt)
-           ; flush the buffer to output
-           (.flush wrt)))))
+      (if (not (empty? ln))
+        (let [output (route-by-input-type (string->vector (clojure.string/trim ln) #" "))]
+          (when logflag (log "chosen move:" output))
+          ; output is either nil or a string in the right format for
+          ; outputting a move
+          (if output
+            (println output)))))
     ; close rdr because we're considerate programmers
-    ; closing wrt seems to cause the program to crash
     (.close rdr)))
 
 
