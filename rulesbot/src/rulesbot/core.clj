@@ -1,4 +1,4 @@
-(ns basicbot.core
+(ns rulesbot.core
   (:require [clara.rules :refer :all]
             [clara.tools.tracing :refer :all]
             [clara.tools.inspect :refer :all])
@@ -269,6 +269,11 @@
   (list (internal-macro-col->board-col macro-num index)
         (internal-macro-row->board-row macro-num index)))
 
+; (moves-available?)
+(defn moves-available?
+  []
+  (contains? @field-vector 0))
+
 ; =========================================
 ; Movement Functions 
 ; =========================================
@@ -404,7 +409,100 @@
           (if output
             (println output)))))
     ; close rdr because we're considerate programmers
-    (.close rdr)))
+    ;; (.close rdr)
+    ))
+
+; =========================================
+; Records and Rules
+; =========================================
+; available states are:
+;  [1]  - 
+(defrecord State [state])  ; This may be unnecessary
+
+;; Board/Field Facts
+(defrecord BoardForwardDiagSum [sum])
+(defrecord BoardReverseDiagSum [sum])
+(defrecord BoardFirstColSum [sum])
+(defrecord BoardSecondColSum [sum])
+(defrecord BoardLastColSum [sum])
+(defrecord BoardFirstRowSum [sum])
+(defrecord BoardSecondRowSum [sum])
+(defrecord BoardLastRowSum [sum])
+
+;; Macroboard Facts
+(defrecord MbForwardDiagSum [sum])
+(defrecord MbReverseDiagSum [sum])
+(defrecord MbFirstColSum [sum])
+(defrecord MbSecondColSum [sum])
+(defrecord MbLastColSum [sum])
+(defrecord MbFirstRowSum [sum])
+(defrecord MbSecondRowSum [sum])
+(defrecord MbLastRowSum [sum])
+
+
+
+; (init-game)
+(defrule init-game
+  "requires the initial state 1, and changes to the next
+  state which is to begin reading input"
+  {:salience 500}
+  [State (= :1 ?state)]
+  =>
+  ;; (insert! (->State 2))
+
+  ;; (insert! (->TakeInput false))
+  (println ?state))
+
+(defrule get-input
+  ""
+  {:salience 475}
+  [State (= :1 ?state)]
+  =>
+  ;; (insert! (->State 4))
+  ;; (insert! (->TakeInput true))
+  (let [line (.readLine (java.io.BufferedReader. *in*))]
+    (println line))
+  (insert! (->BoardReverseDiagSum (* 2 (read-string @opponent-bot-id)))))
+
+;; (defrule check-moves-available
+;;   ""
+;;   {:salience 400}
+;;   [State (= ?state 3)]
+;;   [TakeInput (= ?done true)]
+;;   [:not (TakeInput (= ?done false))]
+;;   =>
+;;   (insert! (->State 4))
+;;   (println moves-available?))
+
+(defrule block-game-win
+  "if any of the board/field sum facts are twice opponent
+  id sum, place a move to block the win, in the case of
+  the overall board may want to drive them away from the
+  macroboard that would allow them to win"
+  [:or [BoardForwardDiagSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardReverseDiagSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardFirstColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardSecondColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardLastColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardFirstRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardSecondRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
+   [BoardLastRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]]
+  =>
+  (println "Blocking the win!")
+  (insert! (->State :1)))
+
+;; (defrule block-macroboard-win
+;;   "if any of the macroboard sum facts are twice opponent
+;;   id sum, place a move to block the win"
+;;   {}
+;;   [])
+
+(defrule end-game
+  ""
+  {:salience -100}
+  [State (= :2 ?state)]
+  =>
+  (println "Gameover. Thank you for playing."))
 
 ; =========================================
 ; Main
@@ -412,8 +510,9 @@
 (defn -main
   ""
   [& args]
-  (read-input))
-
-
-
-
+  (defsession ttt-session 'rulesbot.core)
+  (-> ttt-session (insert (->State :1))
+      (with-tracing)
+      (fire-rules)
+      (explain-activations)
+      (println "HERE!!!!!")))
