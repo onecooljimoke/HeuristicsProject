@@ -1,7 +1,4 @@
 (ns basicbot.core
-  (:require [clara.rules :refer :all]
-            [clara.tools.tracing :refer :all]
-            [clara.tools.inspect :refer :all])
   (:gen-class))
 
 ; =========================================
