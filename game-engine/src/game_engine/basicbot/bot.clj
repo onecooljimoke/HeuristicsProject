@@ -1,7 +1,7 @@
 (ns game-engine.basicbot.bot
   (:require [clojure.core.async
              :as a
-             :refer [>! <! >!! <!! go chan buffer close!]]))
+             :refer [>! <! >!! <!! go go-loop chan buffer close!]]))
 
 ; =========================================
 ; Logging functionality
@@ -388,18 +388,14 @@
 ; listen to standard-input and write it to standard output
 (defn read-input
   "Use java.io.BufferedReader and .BufferedWriter to read
-  continuous user input
-
-  Stop listening by typing 'end' "
+  continuous user input"
   [in-chan out-chan]
-  (loop [ln (clojure.string/trim (<!! in-chan))]
+  (go-loop [ln (clojure.string/trim (<! in-chan))]
     (when logflag (log "input is:" ln))
-    (if (not (empty? ln))
-      (let [output (route-by-input-type (string->vector ln #" "))]
-        (when logflag (log "chosen move:" output))
-        ; output is either nil or a string in the right format for
-        ; outputting a move
-        (if output
-          (>!! out-chan output)
-          (recur (<!! in-chan))))
-      (recur (<!! in-chan)))))
+    (let [output (route-by-input-type (string->vector ln #" "))]
+      (when logflag (log "chosen move:" output))
+      ; output is either nil or a string in the right format for
+      ; outputting a move
+      (if output
+        (>! out-chan output))
+      (recur (clojure.string/trim (<! in-chan))))))
