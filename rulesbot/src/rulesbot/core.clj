@@ -87,6 +87,9 @@
   [crnt-field-cell]
   (let [next-row-field-cell (+ crnt-field-cell 9)] next-row-field-cell))
 
+(defn get-forward-diag-sum
+  [nine-cells]
+  )
 
 ; =========================================
 ; Board Functions 
@@ -101,6 +104,7 @@
 (def opponent-bot-id (atom "0"))
 (def macroboard-vector(atom []))
 (def field-vector(atom []))
+(def macroboard-number (atom "0"))
 
 ; (determine-opponent-id id-str) -> string?
 ; id-str -> string
@@ -156,23 +160,20 @@
   ; settings input will look like:
   ; "update game field <str>"
   ; "update game macroboard <str>
-  (when logflag (log "game-input-starts-with-update called with:" v))
+  ;; (when logflag (log "game-input-starts-with-update called with:" v))
   (cond
-    (and (= (v 1) "game")
-         (= (v 2) "field"))
-    (swap! field-vector (fn [current_state] (string->vector (v 3) #",")))
-    (and (= (v 1) "game")
-         (= (v 2) "macroboard"))
-    (swap! macroboard-vector (fn [current_state] (string->vector (v 3) #",")))
-    (and (= (v 1) "game")
-         (= (v 2) "round"))
-    (swap! round-number (fn [current_state] (v 3)))
-    (and (= (v 1) "game")
-         (= (v 2) "move"))
-    (swap! move-number (fn [current_state] (v 3))))
-  ; return nil to make routing easier, we already know what the return value 
-  ; of swap is anyway 
-  nil)
+    (and (= (v 0) "game")
+         (= (v 1) "field"))
+    (swap! field-vector (fn [current_state] (string->vector (v 2) #",")))
+    (and (= (v 0) "game")
+         (= (v 1) "macroboard"))
+    (swap! macroboard-vector (fn [current_state] (string->vector (v 2) #",")))
+    (and (= (v 0) "game")
+         (= (v 1) "round"))
+    (swap! round-number (fn [current_state] (v 2)))
+    (and (= (v 0) "game")
+         (= (v 1) "move"))
+    (swap! move-number (fn [current_state] (v 2)))))
 
 ; (available-for-move? idx arg) -> false or int?
 ; idx -> int?
@@ -412,12 +413,26 @@
     ;; (.close rdr)
     ))
 
-; =========================================
-; Records and Rules
-; =========================================
-; available states are:
-;  [1]  - 
-(defrecord State [state])  ; This may be unnecessary
+;; =========================================
+;; Records and Rules
+;; =========================================
+
+;; States
+;; :1 - Initial
+;; :2 - Select Macroboard
+;; :3 - Select Move
+;; :4 - Make Move
+;; :100 - End
+
+(defrecord State [state])
+
+(defrecord Input [type args])
+
+(defrecord Field [populated])
+
+(defrecord Macroboard [populated])
+
+(defrecord Move [populated])
 
 ;; Board/Field Facts
 (defrecord BoardForwardDiagSum [sum])
@@ -439,30 +454,85 @@
 (defrecord MbSecondRowSum [sum])
 (defrecord MbLastRowSum [sum])
 
-
-
-; (init-game)
-(defrule init-game
-  "requires the initial state 1, and changes to the next
-  state which is to begin reading input"
-  {:salience 500}
-  [State (= :1 ?state)]
-  =>
-  ;; (insert! (->State 2))
-
-  ;; (insert! (->TakeInput false))
-  (println ?state))
-
 (defrule get-input
   ""
-  {:salience 475}
-  [State (= :1 ?state)]
+  [State (= :1 state)]
   =>
-  ;; (insert! (->State 4))
-  ;; (insert! (->TakeInput true))
-  (let [line (.readLine (java.io.BufferedReader. *in*))]
-    (println line))
-  (insert! (->BoardReverseDiagSum (* 2 (read-string @opponent-bot-id)))))
+  (let [line (read-line)
+        line-vector (string->vector (clojure.string/trim line) #" ")]
+    (insert! (->Input (first line-vector) (into [] (rest line-vector))))))
+
+(defrule input-was-update
+  ""
+  [Input (= "update" type)]
+  [?type <- Input (= "update" type)]
+  =>
+  (let [args (get ?type :args)]
+    (if (> (count args) 2)
+      (cond
+       (and (= (args 0) "game")
+            (= (args 1) "field"))
+       (do (swap! field-vector (fn [current_state] (string->vector (args 2) #",")))
+           (if field-vector
+             (insert! (->Field true))))
+       (and (= (args 0) "game")
+            (= (args 1) "macroboard"))
+       (do (swap! macroboard-vector (fn [current_state] (string->vector (args 2) #",")))
+           (insert! (->Macroboard true)))
+       (and (= (args 0) "game")
+            (= (args 1) "round"))
+       (swap! round-number (fn [current_state] (args 2)))
+       (and (= (args 0) "game")
+            (= (args 1) "move"))
+       (swap! move-number (fn [current_state] (args 2))))))
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule input-was-settings
+  [Input (= "settings" type)]
+  [?type <- Input (= "settings" type)]
+  =>
+  (let [args (get ?type :args)]
+    (cond
+    (= (args 0) "your_botid")
+    (let [my-id (args 1)
+          opponent-id (determine-opponent-id (args 1))]
+      (swap! our-bot-id (fn [current_state] my-id))
+      (swap! opponent-bot-id (fn [current_state] opponent-id)))))
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule input-was-action
+  [Input (= "action" type)]
+  [?type <- Input (= "action" type)]
+  =>
+  (let [args (get ?type :args)]
+    (cond
+     (= (args 0) "move")
+     (do (insert! (->State :2))))))
+
+(defrule select-macroboard
+  [State (= :2 state)]
+  =>
+  (println "Select MB --Code goes here--.")
+  (if (not (empty? @macroboard-vector))
+    (do (swap! macroboard-number (fn [current_state] (pick-move (big-squares-available @macroboard-vector))))
+        (println @macroboard-number)))
+  ;; (retract! (->State :3))
+  (insert! (->State :3)))
+
+(defrule select-move
+  [State (= :3 state)]
+  =>
+  (println "Select Move --Code goes here--.")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule input-was-end
+  ""
+  [Input (= "end" type)]
+  =>
+  (insert! (->State :100)))
 
 ;; (defrule check-moves-available
 ;;   ""
@@ -474,21 +544,79 @@
 ;;   (insert! (->State 4))
 ;;   (println moves-available?))
 
-(defrule block-game-win
-  "if any of the board/field sum facts are twice opponent
-  id sum, place a move to block the win, in the case of
-  the overall board may want to drive them away from the
-  macroboard that would allow them to win"
-  [:or [BoardForwardDiagSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardReverseDiagSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardFirstColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardSecondColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardLastColSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardFirstRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardSecondRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]
-   [BoardLastRowSum (= ?sum (* 2 (read-string @opponent-bot-id)))]]
+;; =================================
+;; Block Game Wins
+;; =================================
+(defrule block-forward-diag-game-win
+  "if the forward diagonal sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardForwardDiagSum (= sum (* 2 (read-string @opponent-bot-id)))]
   =>
-  (println "Blocking the win!")
+  (println "Blocking the forward diag win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-reverse-diag-game-win
+  "if the reverse diagonal sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardReverseDiagSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the reverse diag win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-first-col-game-win
+  "if the first col sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardFirstColSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the first col win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-second-col-game-win
+  "if the second col sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardSecondColSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the second col win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-last-col-game-win
+  "if the last col sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardLastColSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the last col win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-first-row-game-win
+  "if the first row sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardFirstRowSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the first row win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-second-row-game-win
+  "if the second row sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardSecondRowSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the second row win!")
+  (retract! (->State :1))
+  (insert! (->State :1)))
+
+(defrule block-last-row-game-win
+  "if the last row sum is twice the opponent
+  id sum, place a move to block the win"
+  [BoardLastRowSum (= sum (* 2 (read-string @opponent-bot-id)))]
+  =>
+  (println "Blocking the last row win!")
+  (retract! (->State :1))
   (insert! (->State :1)))
 
 ;; (defrule block-macroboard-win
@@ -499,10 +627,9 @@
 
 (defrule end-game
   ""
-  {:salience -100}
-  [State (= :2 ?state)]
+  [State (= :100 state)]
   =>
-  (println "Gameover. Thank you for playing."))
+  (println "Gameover. Thank you for playing.\n"))
 
 ; =========================================
 ; Main
