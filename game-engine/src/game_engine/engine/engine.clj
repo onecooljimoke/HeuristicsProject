@@ -17,10 +17,11 @@
       (assoc :game-winner false)
       (assoc :moving-player :bot1)))
 
-; (row-col->field-index col-str row-str) -> int?
+; (col-row->field-index [col-str row-str]) -> int?
+; argument should be a seq with at least two members
 ; col-str -> str? representing a column # from 0 to 8
 ; row-str -> str? representing a row # from 0 to 8 
-(defn row-col->field-index
+(defn col-row->field-index
   "Return the index in the field vector from 0 to 80 that
   matches the position in the 9 x 9 representation of the board"
   [[col-str row-str]]
@@ -80,7 +81,7 @@
             ; wait for and validate the response
             (let [bot-input (<!! my-chan)
                   move-vec (clojure.string/split bot-input #" ")
-                  move-index (row-col->field-index (rest move-vec))
+                  move-index (col-row->field-index (rest move-vec))
                   new-field (assoc (:field-vector state) move-index (bot-number (:moving-player state)))
                   new-macroboard ["0" "-1" "0" "0" "0" "0" "0" "0" "0"]
                   next-player (flip-player (:moving-player state))]
