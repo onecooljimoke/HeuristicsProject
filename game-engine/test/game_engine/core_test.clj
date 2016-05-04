@@ -1,7 +1,12 @@
 (ns game-engine.core-test
-  (:require [clojure.test :refer :all]
-            [game-engine.core :refer :all]))
+  (:use midje.sweet)
+  (:require [game-engine.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(facts "Some example tests"
+  (fact "this is true"
+    (= 1 1) => true)
+  (fact "this is false"
+    (= 1 0) => false)
+  (fact "this is also true"
+    (let [x 1]
+      (= x 1) => true)))
