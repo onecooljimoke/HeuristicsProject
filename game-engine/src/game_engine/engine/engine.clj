@@ -28,6 +28,7 @@
   ; read-string converts a string to an int
   (+ (* 9 (read-string row-str)) (read-string col-str)))
 
+
 ; (flip-player bot) -> keyword?
 ; bot -> keyword? (value should be :bot1 or :bot2)
 (defn flip-player
@@ -46,6 +47,56 @@
   (if (= bot-id :bot1)
     1
     2))
+
+;;; Validation Helpers
+(defn within-range?
+  "Return true if the string x between 0 and 8 inclusive"
+  [x]
+  (let [x-int (read-string x)]
+    (and (>= x-int 0) (<= x-int 8))))
+
+(defn int-within-range?
+  "Return true if str is an integer of length 1 (between 0 and 9)"
+  [str]
+  (if (= 1 (count str))
+    (when (integer? (read-string str))
+      (within-range? str))
+    false))
+
+; (col-row->macroboard col row) -> int?
+; col -> int?
+; row -> int?
+(defn col-row->macroboard
+  "Take the big board column and row and return the macroboard
+  they belong to"
+  [col row]
+  (let [macro-row (quot row 3)
+        macro-col (quot col 3)]
+    (+ (* macro-row 3) macro-col)))
+
+;;; Validations
+(defn validate-input
+  [input-str]
+  ; starts with place_move
+  ; split vector has length 3
+  ; 2nd and 3rd values are int
+  ; 2nd and 3rd values are between 0 and 8 inclusive
+  (let [input-vec (clojure.string/split input-str #" ")
+        validation-vec [#(= "place_move" (first %))
+                        #(= 3 (count %))
+                        #(every? int-within-range? (rest %))]]
+    (every? true? (map #(% input-vec) validation-vec))))
+
+; (validate-macroboard-placement col row macroboard-vector) -> bool?
+; col -> int?
+; row -> int?
+; macroboard-vector -> vector? of int?
+(defn validate-macroboard-placement
+  "Return true if col and row are in an
+  open macroboard"
+  [col row macroboard-vector]
+  ; macroboard is vector of strings
+  (= "-1" (macroboard-vector (col-row->macroboard col row))))
 
 ; (run-game my-chan bot1-chan bot2-chan) -> nil?
 ; my-chan -> channel?
