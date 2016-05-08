@@ -397,5 +397,6 @@
       ; output is either nil or a string in the right format for
       ; outputting a move
       (if output
-        (>! out-chan output))
+       (>! out-chan output))
+
       (recur (clojure.string/trim (<! in-chan))))))
