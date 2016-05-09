@@ -80,9 +80,41 @@
     (fact "invalid move"
       (validate-requested-move "place_move 0 0" macroboard-vector field-vector1) => false)))
 
+(facts "Determine from a move where the next move must be"
+  (fact "0 0 returns 0"
+    (macroboard-index-from-move 0 0) => 0)
+  (fact "2 1 returns 5"
+    (macroboard-index-from-move 2 1) => 5)
+  (fact "6 4 returns 3"
+    (macroboard-index-from-move 6 4) => 3)
+  (fact "4 5 returns 7"
+    (macroboard-index-from-move 4 5) => 7))
+
 (facts "transform macroboard vector for output"
-  (let [macro-vec ["-1" "0" "1" "2" "-1" "0" "1" "2" "-1"]]
+  (let [macro-vector ["-1" "0" "1" "2" "-1" "0" "1" "2" "-1"]
+        state-map1 {:macroboard-vector macro-vector 
+                   :macroboard-move-index 0
+                   :move-col 1
+                   :move-row 1}
+        state-map2 {:macroboard-vector macro-vector 
+                    :macroboard-move-index 0
+                    :move-col 1
+                    :move-row 0}]
     (fact "required macroboard move is open in the board"
-      (transform-macroboard-output macro-vec 4) => ["0" "0" "1" "2" "-1" "0" "1" "2" "0"])
+      (transform-macroboard-output state-map1) => ["0" "0" "1" "2" "-1" "0" "1" "2" "0"])
     (fact "required macroboard move is not open in the board"
-      (transform-macroboard-output macro-vec 7) => macro-vec)))
+      (transform-macroboard-output state-map2) => macro-vector)))
+
+(facts "update field vector"
+  (fact "test 1"
+      (let [state-map {:field-vector (vec (repeat 81 "0"))
+                   :move-col 0
+                   :move-row 0
+                   :moving-player :bot1}]
+        ((update-field-vector state-map) 0) => "1"))
+  (fact "test 2"
+      (let [state-map {:field-vector (vec (repeat 81 "0"))
+                   :move-col 4
+                   :move-row 7
+                   :moving-player :bot2}]
+        ((update-field-vector state-map) 67) => "2")))

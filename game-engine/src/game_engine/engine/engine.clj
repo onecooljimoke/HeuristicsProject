@@ -90,18 +90,33 @@
       "0"
       x)))
 
+; (macroboard-index-from move col row) -> int?
+; col -> int?
+; row -> int?
+(defn macroboard-index-from-move
+  "Return the internal index of a move so we know where an opponent's
+  next move must be"
+  [col row]
+  (+ (* 3 (rem row 3)) (rem col 3)))
+
+; (transform-macroboard-output state-map) -> macroboard-vector?
+; state-map-> map? of game-state 
 (defn transform-macroboard-output
   "In the event that a player's move forces their opponent to play in a
   specific macroboard, the output should show 0's for any position not
   won by either player. Yes, this is confusing because 0 also means draw,
   but that's how the api does it"
-  [macroboard-vector required-macroboard-move]
-  ; if the required macroboard move is open in the board, transform the output
-  (if (= "-1" (macroboard-vector required-macroboard-move))
-    ; transform output
-    (into [] (map compare-transform-args macroboard-vector (build-helper-macro-vector required-macroboard-move)))
-    ; else nothing to do, return the macroboard as is
-    macroboard-vector))
+  [state-map]
+  ; need to check for -1 to make sure this isn't the initial loop of the game
+  ; which would cause the game to crash
+  (if (not (= -1 (:macroboard-move-index state-map)))
+    (let [required-macroboard-move (macroboard-index-from-move (:move-col state-map) (:move-row state-map))]  
+      (if (= "-1" ((:macroboard-vector state-map) required-macroboard-move))
+        ; transform output
+        (into [] (map compare-transform-args (:macroboard-vector state-map) (build-helper-macro-vector required-macroboard-move)))
+        ; else nothing to do, return the macroboard as is
+        (:macroboard-vector state-map)))
+    (:macroboard-vector state-map)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                  Validation Helpers
@@ -174,6 +189,68 @@
 ;                  Update Helpers 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; (parse-move input-str idx) -> int?
+; input-str -> string? player's requested move as string
+; idx -> int? which argument in the string to parse
+(defn parse-move
+  "Helper function for converting the col or row input string to
+  an int"
+  [input-str idx]
+  (read-string ((clojure.string/split input-str #" ") idx)))
+
+; (flip-stuff state-map) -> state-map?
+; state-map? -> map? of game state
+(defn flip-stuff
+  "Helper function. Increment the move number and flip the moving player"
+  [state-map]
+  (assoc state-map :move (+ (:move state-map) 1) :moving-player (flip-player (:moving-player state-map))))
+
+; (update-with-input state-map input-str) -> state-map?
+; state-map -> map? of game state
+; input-str -> string? player's move request
+(defn update-with-input
+  "Return a new state map with updated values for
+  :move-input, :move-col, :move-row, :macroboard-move-index
+  based on input-str"
+  [state-map input-str]
+  (let [col (parse-move input-str 1)
+        row (parse-move input-str 2)
+        macro-idx (col-row->macroboard col row)]
+    (assoc state-map
+           :move-input input-str
+           :move-col col
+           :move-row row
+           :macroboard-move-index macro-idx)))
+
+; (update-field-vector state-map) -> vector?
+; state-map -> map? of game state
+(defn update-field-vector
+  "Update a value in a field-vector and return a new field vector"
+  [state-map]
+  (assoc (:field-vector state-map) 
+         ; get the index we need to update in field vector
+         (col-row->field-index (:move-col state-map) (:move-row state-map))
+         ; get the player number we need to write to the field vector
+         (str (bot-number (:moving-player state-map)))))
+
+; (update-state-field-vector state-map) -> state-map?
+; state-map -> map? of game state
+(defn update-state-field-vector
+  "Update the field vector in the state map and return a new state map"
+  [state-map]
+  (assoc state-map :field-vector (update-field-vector state-map)))
+
+; (output-updates state-map) -> state-map?
+; state-map -> map? of game-state
+(defn output-updates
+  "Write results from the round to the wherever they're supposed to go.
+  Returns the same state-map that was passed in so this function can 
+  be chained."
+  [state-map]
+  ; (println (:moving-player state-map) "returns:" (:move-input state-map))
+  (println "Move" (:move state-map) state-map)
+  ; return state map otherwise bad things will happen
+  state-map)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;             Engine Stages 
@@ -210,16 +287,19 @@
   (>!! bot-chan (str "update game round " (+ (quot (:move state-map) 2) 1)))
   (>!! bot-chan (str "update game move " (+ (mod (:move state-map) 2) 1)))
   (>!! bot-chan (str "update game field " (clojure.string/join "," (:field-vector state-map))))
-  (>!! bot-chan (str "update game macroboard " (clojure.string/join "," (:macroboard-vector state-map)))))
+  (>!! bot-chan (str "update game macroboard " (clojure.string/join "," (transform-macroboard-output state-map)))))
 
 (defn update-game-state 
   [state-map input-str]
   ; if input-str in correct format and requested move is an open move
   (if (validate-requested-move input-str (:macroboard-vector state-map) (:field-vector state-map))
     ; then update and return the game state
-    (do
-      (println (:moving-player state-map) "returns:" input-str)
-      (assoc state-map :move (+ (:move state-map) 1) :moving-player (flip-player (:moving-player state-map))))
+    (-> state-map
+        (update-with-input input-str)
+        (update-state-field-vector)
+        (output-updates)
+        ; until I think of a better name, this is how we increment the move # and flip the moving player
+        (flip-stuff))
 
     ; else return error state
     (build-error-state state-map input-str)))
