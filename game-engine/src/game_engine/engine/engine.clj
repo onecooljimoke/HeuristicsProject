@@ -147,10 +147,6 @@
         macro-col (quot col 3)]
     (+ (* macro-row 3) macro-col)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                  Validation Helpers 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ; (input-valid? input-vec) -> bool?
 ; input-vec -> vector? of string?
 (defn input-valid?
@@ -184,6 +180,78 @@
  is open for a move (value = '0')"
   [field-vector col row]
   (= "0" (field-vector (col-row->field-index col row))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                  Win Checking Helpers 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; (build-row-list board-vector move-row) -> list?
+(defn build-row-list
+  "Return the list of values in the row of a board list"
+  [board-vector move-row]
+  (nth (partition 3 board-vector) move-row))
+
+; (build-column-list board-vector move-col) -> list?
+(defn build-column-list
+  "Return the list of values in the column of a board list"
+  [board-vector move-col]
+  (nth (apply map #(list %1 %2 %3) (partition 3 board-vector)) move-col))
+
+; (take-indices take-vec idx-list) -> list?
+; take-vec -> vector? of any type of value
+; idx-list -> list? of int? 
+(defn take-indices
+  "Take values from take-vec at the indices specified in idx-list"
+  [take-vec idx-list]
+  (map #(take-vec %) idx-list))
+
+; (build-left-diagonal board-vector) -> list?
+(defn build-left-diagonal
+  "Return the diagonal in the board list starting in the upper left corner"
+  [board-vector]
+  (take-indices board-vector '(0 4 8)))
+
+; (build-right-diagonal board-vector) -> list?
+(defn build-right-diagonal
+  "Return the diagonal in the board list starting in the upper right corner"
+  [board-vector]
+  (take-indices board-vector '(2 4 6)))
+
+(defn build-check-list
+  "Return a list of lists representing the rows columns
+  and diagonals that need to be checked in board-vector"
+  [board-vector move-col move-row]
+  (let [idx (+ (* 3 move-row) move-col)]
+    ; cond->> threads the value as the last argument of the
+    ; function only if the conditional evaluates to true,
+    ; otherwise it just moves on to the next line
+    (cond->> '()
+      ; will always be a column and row to return
+      true (cons (build-row-list board-vector move-row))
+      true (cons (build-column-list board-vector move-col))
+      (= idx 0) (cons (build-left-diagonal board-vector))
+      (= idx 2) (cons (build-right-diagonal board-vector))
+      (= idx 4) (cons (build-left-diagonal board-vector))
+      (= idx 4) (cons (build-right-diagonal board-vector))
+      (= idx 6) (cons (build-right-diagonal board-vector))
+      (= idx 8) (cons (build-left-diagonal board-vector)))))
+
+; (board-won check-list player-str) -> bool?
+; check-list -> list? of column, row and diagonal lists from a board
+; player-str -> string? representing player number
+(defn board-won?
+  "Return true if player-str has won and of the lists
+  in check-list. This would mean the player has won a
+  board"
+  [check-list player-str]
+  ; cons the player str with each list in check-list
+  ; explode the resulting list so we can pass the values
+  ; as arguments to '='
+  ; return true if any of the lists in check-list contain
+  ; only values = player-str
+  (if (some #(apply = (cons player-str %)) check-list)
+    true
+    false))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                  Update Helpers 
@@ -295,8 +363,12 @@
   (if (validate-requested-move input-str (:macroboard-vector state-map) (:field-vector state-map))
     ; then update and return the game state
     (-> state-map
+        ; update state based on the input string
         (update-with-input input-str)
+        ; update the field vector with the user's move
         (update-state-field-vector)
+        ; check if the user won the game inside a macroboard
+        ; check if the user won the game
         (output-updates)
         ; until I think of a better name, this is how we increment the move # and flip the moving player
         (flip-stuff))

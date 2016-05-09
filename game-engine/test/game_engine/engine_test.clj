@@ -118,3 +118,27 @@
                    :move-row 7
                    :moving-player :bot2}]
         ((update-field-vector state-map) 67) => "2")))
+
+(facts "build rows, columns and diagonals"
+  (let [board-vector ["1" "2" "3" "4" "5" "6" "7" "8" "9"]]
+      (fact "build row"
+        (build-row-list board-vector 1) => '("4" "5" "6"))
+      (fact "build column"
+        (build-column-list board-vector 2) => '("3" "6" "9"))
+      (fact "build left diagonal"
+        (build-left-diagonal board-vector) => '("1" "5" "9"))
+      (fact "build right diagonal"
+        (build-right-diagonal board-vector) => '("3" "5" "7"))))
+
+(facts "check if a player won a board"
+  (let [winning-row ["1" "1" "1" "2" "0" "2" "0" "0" "0"]
+        winning-col ["1" "2" "2" "1" "0" "0" "1" "2" "0"]
+        winning-diag ["1" "0" "0" "0" "1" "0" "0" "0" "1"]]
+    (fact "winning row returns true for player 1"
+      (board-won? (build-check-list winning-row 0 0) "1") => true)
+    (fact "winning column returns true for player 1"
+      (board-won? (build-check-list winning-col 0 0) "1") => true)
+    (fact "winning diag returns true for player 1"
+      (board-won? (build-check-list winning-diag 1 1) "1") => true)
+    (fact "winning row returns false for player 2"
+      (board-won? winning-row "2") => false)))
