@@ -142,3 +142,8 @@
       (board-won? (build-check-list winning-diag 1 1) "1") => true)
     (fact "winning row returns false for player 2"
       (board-won? winning-row "2") => false)))
+
+(facts "build internal macroboard"
+  (let [field-vector (vec (repeat 81 "0"))]
+    (fact "retruns a list of 0"
+      (build-internal-macroboard field-vector 7) => (vec (repeat 9 "0")))))

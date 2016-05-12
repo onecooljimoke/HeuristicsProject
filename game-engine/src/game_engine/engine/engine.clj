@@ -5,6 +5,72 @@
              :refer [>! <! >!! <!! go chan buffer close!]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                 Board Math 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; (next-row-same-cell)
+; crnt-field-cell -> int?
+(defn next-row-same-cell
+  "returns the same cell in the next row for a given field index"
+  [crnt-field-cell]
+  (let [next-row-field-cell (+ crnt-field-cell 9)] next-row-field-cell))
+
+; (upper-left-macro-column macro_num) -> int?
+; macro_num -> int?
+(defn upper-left-macro-column
+  "Return the upper left column of a macroboard
+  This returns where on the big board interal column 0 lies"
+  [macro_num]
+   (+ (mod macro_num 3) (* 2 (mod macro_num 3))))
+
+; (upper-left-macro-row macro_num) -> int?
+; macro_num -> int?
+(defn upper-left-macro-row
+  "Return the upper left row of a macroboard.
+  This returns where on the big board internal macroboard row 0 lies"
+  [macro_num]
+  (+ (quot macro_num 3) (* 2 (quot macro_num 3))))
+
+
+; (col-row->field-index [col-str row-str]) -> int?
+; OR
+; (col-row->field-index col row) -> int?
+; argument should be a seq with at least two members
+; col-str -> str? representing a column # from 0 to 8
+; row-str -> str? representing a row # from 0 to 8 
+; OR
+; col -> int?
+; row -> int?
+(defn col-row->field-index
+  "Return the index in the field vector from 0 to 80 that
+  matches the position in the 9 x 9 representation of the board
+
+  Note that this is a multi-arity function"
+  ([[col-str row-str]]
+   ; read-string converts a string to an int
+   (+ (* 9 (read-string row-str)) (read-string col-str)))
+  ([col row]
+   (+ (* 9 row) col)))
+
+; (internal-macroboard-column index)
+; index -> int? index within a macroboard tile
+(defn internal-macroboard-column
+  "Return the column number from 0 to 2 that an index of 0 to 8
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
+  [index]
+  (mod index 3))
+
+; (internal-board-row index) -> int?
+; index -> int? index within a macroboard tile
+(defn internal-macroboard-row
+  "Return the row number from 0 to 2 that an index of 0 to 8
+  would belong to within a macroboard. This is only for when we
+  consider the moves inside a macroboard"
+  [index]
+  ; quot is the quotient function, which is the same as floor
+  (quot index 3))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                  Game Running Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -34,27 +100,6 @@
   (assoc state-map  
          :error "invalid move requested"
          :invalid-move input-str))
-
-; (col-row->field-index [col-str row-str]) -> int?
-; OR
-; (col-row->field-index col row) -> int?
-; argument should be a seq with at least two members
-; col-str -> str? representing a column # from 0 to 8
-; row-str -> str? representing a row # from 0 to 8 
-; OR
-; col -> int?
-; row -> int?
-(defn col-row->field-index
-  "Return the index in the field vector from 0 to 80 that
-  matches the position in the 9 x 9 representation of the board
-
-  Note that this is a multi-arity function"
-  ([[col-str row-str]]
-   ; read-string converts a string to an int
-   (+ (* 9 (read-string row-str)) (read-string col-str)))
-  ([col row]
-   (+ (* 9 row) col)))
-
 
 ; (flip-player bot) -> keyword?
 ; bot -> keyword? (value should be :bot1 or :bot2)
@@ -253,6 +298,68 @@
     true
     false))
 
+; (macro-get-top-row)
+; macro-board-num -> int?
+(defn macro-get-top-row
+  "returns the top row contents within a given macroboard"
+  [macro-board-num]
+  (let [upper-left-cell (col-row->field-index (upper-left-macro-row macro-board-num) 
+                                     (upper-left-macro-column macro-board-num))]
+    (let [upper-mid-cell (+ upper-left-cell 1)]
+      (let [upper-right-cell (+ upper-left-cell 2)] 
+        (let [top-row (list upper-left-cell 
+                            upper-mid-cell 
+                            upper-right-cell)]
+          top-row)))))
+
+; (parse-macro-board)
+; mb-num -> int?
+(defn parse-macroboard
+  "Given a macroboard number returns a list of values from 
+  left to right top to bottom"
+  [mb-num]
+  (cond 
+    (and (>= mb-num 0) (<= mb-num 8))
+    (let [top-row (macro-get-top-row mb-num)]
+      (let [mid-row (map next-row-same-cell (into [] top-row))]
+        (let [bottom-row (map next-row-same-cell (into [] mid-row))]
+          (flatten (list top-row mid-row bottom-row)))))
+    :else (list 0)))
+
+
+; (build-internal-macroboard field-vector mb-num) -> vector? of string?
+; field-vector -> vector? of string?
+; mb-num -> int? macroboard number to build from
+(defn build-internal-macroboard
+  "Get a vector of the values within a macroboard"
+  [field-vector mb-num]
+  ; parse-macroboard returns a list of field-vector indices for a macroboard
+  (into [] (map #(field-vector %) (parse-macroboard mb-num))))
+
+; (defn check-macroboard-win state-map) -> state-map?
+; state-map -> map? of game state
+(defn check-macroboard-win
+  "Return an updated state-map if the moving player has won a macroboard"
+  [state-map]
+  (let [board-vector (build-internal-macroboard (:field-vector state-map) (:macroboard-move-index state-map))
+        check-list (build-check-list board-vector (:move-col state-map) (:move-row state-map))]
+    (if (board-won? check-list (str (bot-number (:moving-player state-map))))
+      ; update the macroboard vector the moving player's id
+      (assoc-in state-map [:macroboard-vector (:macroboard-move-index state-map)] (str (bot-number (:moving-player state-map))))
+      state-map)))
+
+; (check-game-win state-map) -> state-map?
+; state-map -> map? of game state
+(defn check-game-win
+  "Check if the game has been won"
+  [state-map]
+  ; need a list of rows, columns and diagonals to check for a win
+  (let [check-list (build-check-list (:macroboard-vector state-map) (internal-macroboard-column (:macroboard-move-index state-map) (internal-macroboard-row (:macroboard-move-index state-map))))]
+    (if (board-won? check-list (str (bot-number (:moving-player state-map))))
+      ; update the game winner
+      (assoc state-map :game-winner (:moving-player state-map))
+      state-map)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                  Update Helpers 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -368,7 +475,10 @@
         ; update the field vector with the user's move
         (update-state-field-vector)
         ; check if the user won the game inside a macroboard
+        (check-macroboard-win)
         ; check if the user won the game
+        (check-game-win)
+        ; log the round's game state
         (output-updates)
         ; until I think of a better name, this is how we increment the move # and flip the moving player
         (flip-stuff))
