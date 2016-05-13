@@ -11,7 +11,7 @@
 (defn -main
   [& args]
   ; make 3 channels for communicating between the game engine and the bots
-  (dotimes [n 2]
+  (dotimes [n 10]
     (let [engine-channel (chan)
           bot1-channel (chan)
           bot2-channel (chan)]

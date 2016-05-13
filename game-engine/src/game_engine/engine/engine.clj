@@ -441,6 +441,14 @@
   (let [board-rows (partition 3 board)]
     (doall (map println board-rows))))
 
+(defn write-result
+  [state-map]
+  (spit "results.txt" (str "\n" (:game-winner state-map)) :append true))
+
+(defn write-error
+  [state-map]
+  (spit "errors.txt" (str "\nError\n" state-map)))
+
 ; (output-updates state-map) -> state-map?
 ; state-map -> map? of game-state
 (defn output-updates
@@ -555,5 +563,9 @@
             (recur (update-game-state state-map (<!! my-chan))))
           ; else
           (if (:game-winner state-map) 
-            (println "Winner is" (:game-winner state-map) "!!!") 
-            (println "Error! Game Aborted" state-map))))))
+            (do 
+              (println "Winner is" (:game-winner state-map) "!!!")
+              (write-result state-map)) 
+            (do
+              (println "Error! Game Aborted" state-map)
+              (write-error state-map)))))))
