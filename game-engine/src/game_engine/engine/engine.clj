@@ -303,8 +303,8 @@
 (defn macro-get-top-row
   "returns the top row contents within a given macroboard"
   [macro-board-num]
-  (let [upper-left-cell (col-row->field-index (upper-left-macro-row macro-board-num) 
-                                     (upper-left-macro-column macro-board-num))]
+  (let [upper-left-cell (col-row->field-index (upper-left-macro-column macro-board-num) 
+                                              (upper-left-macro-row macro-board-num))]
     (let [upper-mid-cell (+ upper-left-cell 1)]
       (let [upper-right-cell (+ upper-left-cell 2)] 
         (let [top-row (list upper-left-cell 
@@ -336,17 +336,29 @@
   ; parse-macroboard returns a list of field-vector indices for a macroboard
   (into [] (map #(field-vector %) (parse-macroboard mb-num))))
 
+; (board-draw? board-vector) -> bool?
+; board-vector -> vec? of string?
+(defn board-draw?
+  "Return true if the board is full"
+  [board-vector]
+  (every? true? (map #(not (= "0" %)) board-vector)))
+
 ; (defn check-macroboard-win state-map) -> state-map?
 ; state-map -> map? of game state
 (defn check-macroboard-win
   "Return an updated state-map if the moving player has won a macroboard"
   [state-map]
   (let [board-vector (build-internal-macroboard (:field-vector state-map) (:macroboard-move-index state-map))
-        check-list (build-check-list board-vector (:move-col state-map) (:move-row state-map))]
+        check-list (build-check-list board-vector (mod (:move-col state-map) 3) (mod (:move-row state-map) 3))]
     (if (board-won? check-list (str (bot-number (:moving-player state-map))))
       ; update the macroboard vector the moving player's id
       (assoc-in state-map [:macroboard-vector (:macroboard-move-index state-map)] (str (bot-number (:moving-player state-map))))
-      state-map)))
+      ; if no win, check for board draw
+      (if (board-draw? board-vector)
+        ; '0' indicates board-draw
+        (assoc-in state-map [:macroboard-vector (:macroboard-move-index state-map)] "0")
+        ; if no win or draw, return state-map as is
+        state-map))))
 
 ; (check-game-win state-map) -> state-map?
 ; state-map -> map? of game state
@@ -354,7 +366,7 @@
   "Check if the game has been won"
   [state-map]
   ; need a list of rows, columns and diagonals to check for a win
-  (let [check-list (build-check-list (:macroboard-vector state-map) (internal-macroboard-column (:macroboard-move-index state-map) (internal-macroboard-row (:macroboard-move-index state-map))))]
+  (let [check-list (build-check-list (:macroboard-vector state-map) (internal-macroboard-column (:macroboard-move-index state-map)) (internal-macroboard-row (:macroboard-move-index state-map)))]
     (if (board-won? check-list (str (bot-number (:moving-player state-map))))
       ; update the game winner
       (assoc state-map :game-winner (:moving-player state-map))
@@ -415,6 +427,20 @@
   [state-map]
   (assoc state-map :field-vector (update-field-vector state-map)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;           Engine Output 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn output-field
+  [board]
+  (let [board-rows (partition 9 board)]
+    (doall (map println board-rows))))
+
+(defn output-macroboard
+  [board]
+  (let [board-rows (partition 3 board)]
+    (doall (map println board-rows))))
+
 ; (output-updates state-map) -> state-map?
 ; state-map -> map? of game-state
 (defn output-updates
@@ -423,7 +449,12 @@
   be chained."
   [state-map]
   ; (println (:moving-player state-map) "returns:" (:move-input state-map))
-  (println "Move" (:move state-map) state-map)
+  (println "Move #" (:move state-map))
+  (println (:moving-player state-map) "makes move:" (:move-input state-map))
+  (println "Board:")
+  (output-field (:field-vector state-map))
+  (println "Macroboard:")
+  (output-macroboard (:macroboard-vector state-map))
   ; return state map otherwise bad things will happen
   state-map)
 
@@ -512,7 +543,7 @@
         ; keep going if no game winner or < than 81 moves have been completed
         (if (and 
              (not (contains? state-map :error)) 
-             (< (:move state-map) 11))
+             (not (:game-winner state-map)))
           (let [bot-chan ((:moving-player state-map) bot-channels)] 
             ; update the bot with current state-map
             (send-bot-updates bot-chan state-map)
@@ -523,4 +554,6 @@
             ; wait for response 
             (recur (update-game-state state-map (<!! my-chan))))
           ; else
-          (println "Error!" state-map)))))
+          (if (:game-winner state-map) 
+            (println "Winner is" (:game-winner state-map) "!!!") 
+            (println "Error! Game Aborted" state-map))))))

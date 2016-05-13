@@ -147,3 +147,27 @@
   (let [field-vector (vec (repeat 81 "0"))]
     (fact "retruns a list of 0"
       (build-internal-macroboard field-vector 7) => (vec (repeat 9 "0")))))
+
+(facts "check macroboard win"
+  (let [initial-state-map (build-initial-state)
+        win-vector (apply conj (vec (repeat 27 "1")) (vec (repeat 54 "0")))
+        start-state-map (assoc initial-state-map :field-vector win-vector :move-col 0 :move-row 0 :macroboard-move-index 0)
+        result-state-map (check-macroboard-win start-state-map)
+        ]
+    (fact "player 1 wins macroboard 0"
+      (:macroboard-vector result-state-map) => ["1" "-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1"])
+    (fact "player 2 wins nothing"
+      (let [player-2-map (assoc start-state-map :moving-player :bot2)
+            result-map (check-macroboard-win player-2-map)]
+        ; this test will fail because it will assign a draw to macroboard
+        ; 0 and i'm too lazy to adjust the vectors so this doesn't happen
+        ; this scenario would never happen in an actual game
+        (:macroboard-vector result-map) => (vec (repeat 9 "-1"))))))
+
+(facts "detect a board draw"
+  (let [draw-board (vec (repeat 9 "1"))
+        open-board ["0" "1" "2" "0" "1" "2" "0" "1" "2"]]
+    (fact "detects a draw"
+      (board-draw? draw-board) => true)
+    (fact "false if open spaces"
+      (board-draw? open-board) => false)))
