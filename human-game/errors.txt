@@ -1,0 +1,3 @@
+
+Error
+{:move-col -1, :invalid-move "lein run", :move-input "", :move 0, :game-winner false, :move-row -1, :macroboard-vector ["-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1" "-1"], :moving-player :bot1, :error "invalid move requested", :field-vector ["0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0" "0"], :macroboard-move-index -1}
