@@ -2865,9 +2865,9 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>game-engine -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="http://example.com/FIXME">game-engine</a></h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>FIXME: write description</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/core.async</td><td class="dotted"><hr /></td><td class="dep-version">0.2.374</td></tr><tr><td class="dep-name">org.toomuchcode/clara-rules</td><td class="dotted"><hr /></td><td class="dep-version">0.11.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#game-engine.engine.engine">game-engine.engine.engine</a></li><li><a href="#game-engine.basicbot.bot">game-engine.basicbot.bot</a></li><li><a href="#game-engine.core">game-engine.core</a></li><li><a href="#game-engine.rulesbot.bot">game-engine.rulesbot.bot</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#game-engine.engine.engine" name="game-engine.engine.engine"><h1 class="project-name">game-engine.engine.engine</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Controls the flow of the game engine</p>
-</td><td class="codes"><pre class="brush: clojure">(ns game-engine.engine.engine
+</script><title>human-game -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="http://example.com/FIXME">human-game</a></h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>FIXME: write description</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/core.async</td><td class="dotted"><hr /></td><td class="dep-version">0.2.374</td></tr><tr><td class="dep-name">org.toomuchcode/clara-rules</td><td class="dotted"><hr /></td><td class="dep-version">0.11.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#human-game.engine.engine">human-game.engine.engine</a></li><li><a href="#human-game.core">human-game.core</a></li><li><a href="#human-game.humanbot.bot">human-game.humanbot.bot</a></li><li><a href="#human-game.rulesbot.bot">human-game.rulesbot.bot</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#human-game.engine.engine" name="human-game.engine.engine"><h1 class="project-name">human-game.engine.engine</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Controls the flow of the game engine</p>
+</td><td class="codes"><pre class="brush: clojure">(ns human-game.engine.engine
   (:require [clojure.core.async
              :as a
              :refer [&gt;! &lt;! &gt;!! &lt;!! go chan buffer close!]]))</pre></td></tr><tr><td class="docs"><p>returns the same cell in the next row for a given field index</p>
@@ -3080,10 +3080,14 @@ crnt-field-cell -> int?</p>
   (into [] (map #(field-vector %) (parse-macroboard mb-num))))</pre></td></tr><tr><td class="docs"><p>Return true if the board is full</p>
 </td><td class="codes"><pre class="brush: clojure">(defn board-draw?
   [board-vector]
-  (every? true? (map #(not (= &quot;0&quot; %)) board-vector)))</pre></td></tr><tr><td class="docs"><p>Return an updated state-map if the moving player has won a macroboard</p>
+  (every? true? (map #(not (= &quot;0&quot; %)) board-vector)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn macroboard-draw?
+  [board-vector]
+  (every? true? (map #(not (= &quot;-1&quot; %)) board-vector)))</pre></td></tr><tr><td class="docs"><p>Return an updated state-map if the moving player has won a macroboard</p>
 </td><td class="codes"><pre class="brush: clojure">(defn check-macroboard-win
   [state-map]
   (let [board-vector (build-internal-macroboard (:field-vector state-map) (:macroboard-move-index state-map))
+        ; get list of rows, columns and diagonals to check
         check-list (build-check-list board-vector (mod (:move-col state-map) 3) (mod (:move-row state-map) 3))]
     (if (board-won? check-list (str (bot-number (:moving-player state-map))))
       ; update the macroboard vector the moving player's id
@@ -3101,7 +3105,9 @@ crnt-field-cell -> int?</p>
     (if (board-won? check-list (str (bot-number (:moving-player state-map))))
       ; update the game winner
       (assoc state-map :game-winner (:moving-player state-map))
-      state-map)))</pre></td></tr><tr><td class="docs"><p>                 Update Helpers </p>
+      (if (macroboard-draw? (:macroboard-vector state-map))
+        (assoc state-map :game-winner &quot;draw&quot;)
+        state-map))))</pre></td></tr><tr><td class="docs"><p>                 Update Helpers </p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Helper function for converting the col or row input string to
   an int</p>
 </td><td class="codes"><pre class="brush: clojure">(defn parse-move
@@ -3234,260 +3240,14 @@ crnt-field-cell -> int?</p>
               (write-result state-map)) 
             (do
               (println &quot;Error! Game Aborted&quot; state-map)
-              (write-error state-map)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#game-engine.basicbot.bot" name="game-engine.basicbot.bot"><h1 class="project-name">game-engine.basicbot.bot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns game-engine.basicbot.bot
-  (:require [clojure.core.async
-             :as a
-             :refer [&gt;! &lt;! &gt;!! &lt;!! go go-loop chan buffer close!]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def logflag false)</pre></td></tr><tr><td class="docs"><p>Write to standard error</p>
-</td><td class="codes"><pre class="brush: clojure">(defn log
-  [&amp; args]
-  (.println *err* args))</pre></td></tr><tr><td class="docs"><p>Return the upper left column of a macroboard
-  This returns where on the big board interal column 0 lies</p>
-</td><td class="codes"><pre class="brush: clojure">(defn upper-left-macro-column
-  [macro_num]
-   (+ (mod macro_num 3) (* 2 (mod macro_num 3))))</pre></td></tr><tr><td class="docs"><p>Return the upper left row of a macroboard.
-  This returns where on the big board internal macroboard row 0 lies</p>
-</td><td class="codes"><pre class="brush: clojure">(defn upper-left-macro-row
-  [macro_num]
-  (+ (quot macro_num 3) (* 2 (quot macro_num 3))))</pre></td></tr><tr><td class="docs"><p>Return the column number from 0 to 2 that an index of 0 to 8
-  would belong to within a macroboard. This is only for when we
-  consider the moves inside a macroboard</p>
-</td><td class="codes"><pre class="brush: clojure">(defn internal-macroboard-column
-  [index]
-  (mod index 3))</pre></td></tr><tr><td class="docs"><p>Return the row number from 0 to 2 that an index of 0 to 8
-  would belong to within a macroboard. This is only for when we
-  consider the moves inside a macroboard</p>
-</td><td class="codes"><pre class="brush: clojure">(defn internal-macroboard-row
-  [index]
-  ; quot is the quotient function, which is the same as floor
-  (quot index 3))</pre></td></tr><tr><td class="docs"><p>Translate an internal macroboard column to a column in the big board</p>
-</td><td class="codes"><pre class="brush: clojure">(defn internal-macro-col-&gt;board-col
-  [macro-num index]
-  (+ (upper-left-macro-column macro-num) (internal-macroboard-column index)))</pre></td></tr><tr><td class="docs"><p>Translate an internal macroboard row to a row in the big board</p>
-</td><td class="codes"><pre class="brush: clojure">(defn internal-macro-row-&gt;board-row
-  [macro-num index]
-  (+ (upper-left-macro-row macro-num) (internal-macroboard-row index)))</pre></td></tr><tr><td class="docs"><p>Return the index from 0 to 80 given row and column numbers</p>
-</td><td class="codes"><pre class="brush: clojure">(defn field-index
-  [row col]
-  (+ (* 9 row) col))</pre></td></tr><tr><td class="docs"><p>returns the same cell in the next row for a given field index</p>
-</td><td class="codes"><pre class="brush: clojure">(defn next-row-same-cell
-  [crnt-field-cell]
-  (let [next-row-field-cell (+ crnt-field-cell 9)] next-row-field-cell))</pre></td></tr><tr><td class="docs"><p>These atoms hold values that may need to be accessed by
-more than one function or namespace</p>
-</td><td class="codes"><pre class="brush: clojure">(def round-number (atom &quot;0&quot;))
-(def move-number (atom &quot;0&quot;))
-(def our-bot-id (atom &quot;0&quot;))
-(def opponent-bot-id (atom &quot;0&quot;))
-(def macroboard-vector(atom []))
-(def field-vector(atom []))</pre></td></tr><tr><td class="docs"><p>The game server only tells us what our bot id is. The only
-  possible ids are '1' or '2'. Given our bot id, return the
-  opponent id</p>
-</td><td class="codes"><pre class="brush: clojure">(defn determine-opponent-id
-  [id-str]
-  (if (= id-str &quot;1&quot;)
-    &quot;2&quot;
-    &quot;1&quot;))</pre></td></tr><tr><td class="docs"><p>Input from the game server that starts with 'settings' is
-  intended to update static information about the game such
-  as bot ids. Update the static variables that hold these
-  values given a vector created by splitting the input string.
-  Currently we are only interested in bot-id settings</p>
-</td><td class="codes"><pre class="brush: clojure">(defn game-input-starts-with-settings 
-  [v]
-  (when logflag (log &quot;game-input-starts-with-settings called with:&quot; v))
-  (cond
-    ; settings input will look like: &quot;settings your_botid i&quot;
-    (= (v 1) &quot;your_botid&quot;)
-    (let [my-id (v 2)
-          opponent-id (determine-opponent-id (v 2))]
-      (swap! our-bot-id (fn [current_state] my-id))
-      (swap! opponent-bot-id (fn [current_state] opponent-id))))
-  ; return nil to make routing easier, we already know what the return value
-  ; of swap is anyway
-  nil)</pre></td></tr><tr><td class="docs"><p>Split a string on a regular expression, return a vector of the results</p>
-</td><td class="codes"><pre class="brush: clojure">(defn string-&gt;vector
-  [str rgx]
-  (clojure.string/split str rgx))</pre></td></tr><tr><td class="docs"><p>Input from the game server that starts with update is
-  intended to update information that changes periodically
-  throughout the game such as the field list and the macroboard
-  list. Update the static variables that hold these values given
-  a vector created by splitting the input string. Currently
-  we're only interested in macroboard and field</p>
-</td><td class="codes"><pre class="brush: clojure">(defn game-input-starts-with-update
-  [v]
-  ; settings input will look like:
-  ; &quot;update game field &lt;str&gt;&quot;
-  ; &quot;update game macroboard &lt;str&gt;
-  (when logflag (log &quot;game-input-starts-with-update called with:&quot; v))
-  (cond
-    (and (= (v 1) &quot;game&quot;)
-         (= (v 2) &quot;field&quot;))
-    (swap! field-vector (fn [current_state] (string-&gt;vector (v 3) #&quot;,&quot;)))
-    (and (= (v 1) &quot;game&quot;)
-         (= (v 2) &quot;macroboard&quot;))
-    (swap! macroboard-vector (fn [current_state] (string-&gt;vector (v 3) #&quot;,&quot;)))
-    (and (= (v 1) &quot;game&quot;)
-         (= (v 2) &quot;round&quot;))
-    (swap! round-number (fn [current_state] (v 3)))
-    (and (= (v 1) &quot;game&quot;)
-         (= (v 2) &quot;move&quot;))
-    (swap! move-number (fn [current_state] (v 3))))
-  ; return nil to make routing easier, we already know what the return value 
-  ; of swap is anyway 
-  nil)</pre></td></tr><tr><td class="docs"><p>Helper function for determining which macroboard(s) a move can be
-  made in. A value of -1 in the macroboard list indicates a move
-  can be made in the corresponding macroboard. Given an index of an
-  argument in a seq and the value of the argument, return the index if
-  the arg = -1, otherwise return false.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn available-for-move?
-  [idx arg]
-  (if (= arg &quot;-1&quot;)
-    idx
-    false))</pre></td></tr><tr><td class="docs"><p>Return a list which helps in determining in which macroboards a move can be made. 
-  The value at each position is false if the macroboard tile is not available for
-  a move. The value is an integer corresponding to the macroboard position if
-  the macroboard is available for a move</p>
-</td><td class="codes"><pre class="brush: clojure">(defn macroboard-move-list
-  [v]
-  ; map-indexed gives us the item and it's index within a seq
-  (map-indexed available-for-move? v))</pre></td></tr><tr><td class="docs"><p>Return a list of macorboard squares that a move can be made in</p>
-</td><td class="codes"><pre class="brush: clojure">(defn big-squares-available
-  [v]
-  (let [lst (macroboard-move-list v)]
-    ; macroboard-move-list is a list of false and/or integers
-    ; remove false values from the list, leaving us with macroboard tile numbers
-    (filter #(not (= false %)) lst)))</pre></td></tr><tr><td class="docs"><p>returns the top row contents within a given macroboard</p>
-</td><td class="codes"><pre class="brush: clojure">(defn macro-get-top-row
-  [macro-board-num]
-  (let [upper-left-cell (field-index (upper-left-macro-row macro-board-num) 
-                                     (upper-left-macro-column macro-board-num))]
-    (let [upper-mid-cell (+ upper-left-cell 1)]
-      (let [upper-right-cell (+ upper-left-cell 2)] 
-        (let [top-row (list upper-left-cell 
-                            upper-mid-cell 
-                            upper-right-cell)]
-          top-row)))))</pre></td></tr><tr><td class="docs"><p>Given a macroboard number returns a list of values from 
-  left to right top to bottom</p>
-</td><td class="codes"><pre class="brush: clojure">(defn parse-macro-board
-  [mb-num]
-  (cond 
-    (and (&gt;= mb-num 0) (&lt;= mb-num 8))
-    (let [top-row (macro-get-top-row mb-num)]
-      (let [mid-row (map next-row-same-cell (into [] top-row))]
-        (let [bottom-row (map next-row-same-cell (into [] mid-row))]
-          (flatten (list top-row mid-row bottom-row)))))
-    :else (list 0)))</pre></td></tr><tr><td class="docs"><p>returns the idx provided if val is 0, 
-  indicating an avilable cell, or false otherwise</p>
-</td><td class="codes"><pre class="brush: clojure">(defn macro-board-cell-available? 
-  [idx val]
-  (if (= val &quot;0&quot;) idx false))</pre></td></tr><tr><td class="docs"><p>returns the list of indices of available cells inside the macroboard</p>
-</td><td class="codes"><pre class="brush: clojure">(defn macro-board-available-cells
-  [mb-cells field]
-  ; (nth field (nth mb-cells 3))
-  (let [mb-cell-values (map (fn [idx] (nth field idx)) mb-cells)]
-    (let [mb-cells-available (map macro-board-cell-available? (range 9) mb-cell-values)]
-      (filter #(not (= false %)) mb-cells-available))))</pre></td></tr><tr><td class="docs"><p>Convert a move inside a macroboard to a row and column in the big
-  board so we can output the move to the game. The returned list
-  holds the column first and then the row</p>
-</td><td class="codes"><pre class="brush: clojure">(defn convert-move-for-output
-  [macro-num index]
-  (list (internal-macro-col-&gt;board-col macro-num index)
-        (internal-macro-row-&gt;board-row macro-num index)))</pre></td></tr><tr><td class="docs"><p>returns a valid index in the macroboard list if
-  the list is non-empty, otherwise it returns -1</p>
-</td><td class="codes"><pre class="brush: clojure">(defn pick-move
-  [mb-available-cells]
-  (if (empty? mb-available-cells)
-    -1
-    (rand-nth mb-available-cells)))</pre></td></tr><tr><td class="docs"><p>As part of the process for selecting a move,
-  given a vector representing the macroboard, determine
-  which macroboard locations we can move in, choose a
-  macroboard location, and output the result</p>
-</td><td class="codes"><pre class="brush: clojure">(defn macroboard-stage
-  [board-vec]
-  (pick-move (big-squares-available board-vec)))</pre></td></tr><tr><td class="docs"><p>Given a macroboard number, macro-num, and the current 
-  field list, chooses an index inside that macroboard to 
-  be the next move location. Outputs a list containing
-  the macroboard number and the move (index in the 
-  macroboard).</p>
-</td><td class="codes"><pre class="brush: clojure">(defn choose-move-stage
-  [macro-num field]
-  (let [cells-available 
-        (macro-board-available-cells (parse-macro-board macro-num) field)]
-    (let [move (pick-move cells-available)]
-      (list macro-num move))))</pre></td></tr><tr><td class="docs"><p>Return a string in the correct format for output to the game.
-  Expects a list whose first item is the column number and whose
-  second item is a row number</p>
-</td><td class="codes"><pre class="brush: clojure">(defn output-string
-  [move-lst]
-  (str &quot;place_move &quot; (first move-lst) &quot; &quot; (second move-lst)))</pre></td></tr><tr><td class="docs"><p>Given the index of a field within a macroboard,
-  and the macroboard number, convert the location
-  to it's coordinates on the big board and return
-  a string in the proper format for output to the
-  game server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn output-stage
-  [[macro-num macro-idx]]
-  (output-string (convert-move-for-output macro-num macro-idx)))</pre></td></tr><tr><td class="docs"><p>Choose a move on the gameboard and return a string
-  in the correct format for communicating a move to the
-  game server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn game-input-starts-with-action
-  ; I put a rest argument here so function conforms with the 
-  ; settings and actions signatures 
-  ; This makes it easier to route by input 
-  [&amp; args]
-  (when logflag
-    (log &quot;game-input-starts-with-action called&quot;
-         &quot;game round:&quot; @round-number 
-         &quot;game-move:&quot; @move-number
-         &quot;current values:&quot;
-         &quot;field:&quot; @field-vector
-         &quot;macroboard:&quot; @macroboard-vector))
-  (-&gt;
-   @macroboard-vector
-   (macroboard-stage)
-   (choose-move-stage @field-vector)
-   (output-stage)))</pre></td></tr><tr><td class="docs"><p>A map for referencing functions to call based on the
-  first word of the game input string. The keys are the
-  potential first words, the values are the functions to
-  call.</p>
-</td><td class="codes"><pre class="brush: clojure">(def input-routes
-  {&quot;settings&quot; game-input-starts-with-settings 
-   &quot;update&quot; game-input-starts-with-update 
-   &quot;action&quot; game-input-starts-with-action})</pre></td></tr><tr><td class="docs"><p>Given a vector of strings, v, call a function in input-routes based
-  on the first string in v</p>
-</td><td class="codes"><pre class="brush: clojure">(defn route-by-input-type
-  [v]
-  (let [type (v 0)]
-    ; make sure v is a key in input-routes
-    (if (contains? input-routes type)
-      ((input-routes type) v)
-      (do
-        (log &quot;Error, can't find route:&quot; type)
-        ; explicitly return nil just to be safe
-        ; the default behavior of any route that's not action is
-        ; to return nil
-        nil))))</pre></td></tr><tr><td class="docs"><p>Use java.io.BufferedReader and .BufferedWriter to read
-  continuous user input</p>
-
-<p>(read-input)
-listen to standard-input and write it to standard output</p>
-</td><td class="codes"><pre class="brush: clojure">(defn read-input
-  [in-chan out-chan]
-  (go-loop [ln (clojure.string/trim (&lt;! in-chan))]
-    (when logflag (log &quot;input is:&quot; ln))
-    (let [output (route-by-input-type (string-&gt;vector ln #&quot; &quot;))]
-      (when logflag (log &quot;chosen move:&quot; output))
-      ; output is either nil or a string in the right format for
-      ; outputting a move
-      (if output
-       (&gt;! out-chan output))
-      (recur (clojure.string/trim (&lt;! in-chan))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#game-engine.core" name="game-engine.core"><h1 class="project-name">game-engine.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Contains -main function for kicking off the program</p>
-</td><td class="codes"><pre class="brush: clojure">(ns game-engine.core
+              (write-error state-map)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#human-game.core" name="human-game.core"><h1 class="project-name">human-game.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Contains -main function for kicking off the program</p>
+</td><td class="codes"><pre class="brush: clojure">(ns human-game.core
   (:require [clojure.core.async
              :as a
              :refer [&gt;! &lt;! &gt;!! &lt;!! go chan buffer close!]]
-            [game-engine.engine.engine :as engine]
-            [game-engine.basicbot.bot :as basicbot]
-            [game-engine.rulesbot.bot :as rulesbot])
+            [human-game.engine.engine :as engine]
+            [human-game.humanbot.bot :as human]
+            [human-game.rulesbot.bot :as rulesbot])
   (:gen-class))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main
   [&amp; args]
@@ -3497,13 +3257,77 @@ listen to standard-input and write it to standard output</p>
         bot2-channel (chan)]
     ; kick off each bot on it's own thread
     ; the read input function will start a thread by itself
-    (basicbot/read-input bot1-channel engine-channel)
+    (human/read-human-input bot1-channel engine-channel)
     (rulesbot/read-input bot2-channel engine-channel)
     ; start the game engine running
     ; we can affect the player order by reversing the order of
     ; of bot1 and bot2 channel
-    (engine/run-game engine-channel bot1-channel bot2-channel)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#game-engine.rulesbot.bot" name="game-engine.rulesbot.bot"><h1 class="project-name">game-engine.rulesbot.bot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns game-engine.rulesbot.bot
+    (engine/run-game engine-channel bot1-channel bot2-channel)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#human-game.humanbot.bot" name="human-game.humanbot.bot"><h1 class="project-name">human-game.humanbot.bot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns human-game.humanbot.bot
+  (:require [clojure.core.async
+             :as a
+             :refer [&gt;! &lt;! &gt;!! &lt;!! go go-loop chan buffer close!]]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn write-field-vector
+  [field-string]
+  (println &quot;Field Vector:&quot;)
+  (println &quot;   0 1 2 3 4 5 6 7 8&quot;)
+  (println &quot;   -----------------&quot;)
+  (let [field-vector (clojure.string/split field-string #&quot;,&quot;)]
+    (doall (map #(println (str %2 &quot;|&quot;) (clojure.string/join #&quot; &quot; %1)) (partition 9 field-vector) (range 9)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn write-macroboard-vector
+  [macro-string]
+  (println &quot;Macroboard:&quot;)
+  (let [macro-vector (clojure.string/split macro-string #&quot;,&quot;)]
+    (doall (map #(println (clojure.string/join #&quot; &quot; %)) (partition 3 macro-vector)))))</pre></td></tr><tr><td class="docs"><p>Input from the game server that starts with 'settings' is
+  intended to update static information about the game such
+  as bot ids.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn game-input-starts-with-settings 
+  [v]
+  (println (clojure.string/join #&quot; &quot; (rest v))))</pre></td></tr><tr><td class="docs"><p>Input from the game server that starts with update is
+  intended to update information that changes periodically
+  throughout the game such as the field list and the macroboard
+  list.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn game-input-starts-with-update
+  [v]
+  ; settings input will look like:
+  ; &quot;update game field &lt;str&gt;&quot;
+  ; &quot;update game macroboard &lt;str&gt;
+  (cond
+    (and (= (v 1) &quot;game&quot;)
+         (= (v 2) &quot;field&quot;))
+    (write-field-vector (v 3))
+    (and (= (v 1) &quot;game&quot;)
+         (= (v 2) &quot;macroboard&quot;))
+    (write-macroboard-vector (v 3))
+    :else (println (clojure.string/join #&quot; &quot; (rest v)))))</pre></td></tr><tr><td class="docs"><p>A map for referencing functions to call based on the
+  first word of the game input string. The keys are the
+  potential first words, the values are the functions to
+  call.</p>
+</td><td class="codes"><pre class="brush: clojure">(def input-routes
+  {&quot;settings&quot; game-input-starts-with-settings 
+   &quot;update&quot; game-input-starts-with-update})</pre></td></tr><tr><td class="docs"><p>Given a vector of strings, v, call a function in input-routes based
+  on the first string in v</p>
+</td><td class="codes"><pre class="brush: clojure">(defn route-by-input-type
+  [v]
+  (let [type (v 0)]
+    ; make sure v is a key in input-routes
+    (if (contains? input-routes type)
+      ((input-routes type) v)
+      (println &quot;Can't find route: &quot; v))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn format-move
+  [move-str]
+  (str &quot;place_move &quot; move-str))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn read-human-input
+  [in-chan out-chan]
+  (go-loop [ln (clojure.string/trim (&lt;! in-chan))]
+    (let [input-vec (clojure.string/split ln #&quot; &quot;)]
+      (if (not (= &quot;action&quot; (input-vec 0)))
+        (route-by-input-type input-vec)
+        (do 
+          (println &quot;Enter move as 'col row':&quot;)
+          (&gt;! out-chan (format-move (read-line)))))
+      (recur (clojure.string/trim (&lt;! in-chan))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#human-game.rulesbot.bot" name="human-game.rulesbot.bot"><h1 class="project-name">human-game.rulesbot.bot</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns human-game.rulesbot.bot
  (:require [clojure.core.async
              :as a
              :refer [&gt;! &lt;! &gt;!! &lt;!! go go-loop chan buffer close!]]
@@ -4107,11 +3931,11 @@ Facts</p>
   (swap! in-chan (fn [current_state] read-chan))
   (swap! out-chan (fn [current_state] write-chan))
   (go 
-    (defsession ttt-session 'game-engine.rulesbot.bot)
+    (defsession ttt-session 'human-game.rulesbot.bot)
     (-&gt; ttt-session (insert (-&gt;State :1))
         (with-tracing)
         (fire-rules)
-        (explain-activations))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_game-engine.engine.engine">game-engine.engine.engine</li><li class="floating-toc-li" id="floating-toc_game-engine.basicbot.bot">game-engine.basicbot.bot</li><li class="floating-toc-li" id="floating-toc_game-engine.core">game-engine.core</li><li class="floating-toc-li" id="floating-toc_game-engine.rulesbot.bot">game-engine.rulesbot.bot</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+        (explain-activations))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_human-game.engine.engine">human-game.engine.engine</li><li class="floating-toc-li" id="floating-toc_human-game.core">human-game.core</li><li class="floating-toc-li" id="floating-toc_human-game.humanbot.bot">human-game.humanbot.bot</li><li class="floating-toc-li" id="floating-toc_human-game.rulesbot.bot">human-game.rulesbot.bot</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
