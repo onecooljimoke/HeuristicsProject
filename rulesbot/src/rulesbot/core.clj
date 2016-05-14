@@ -268,8 +268,10 @@
   board so we can output the move to the game. The returned list
   holds the column first and then the row"
   [macro-num index]
-  (list (internal-macro-col->board-col macro-num index)
-        (internal-macro-row->board-row macro-num index)))
+  (str "place_move " 
+       (internal-macro-col->board-col macro-num index)
+       " " 
+       (internal-macro-row->board-row macro-num index)))
 
 ; (moves-available?)
 (defn moves-available?
@@ -498,6 +500,7 @@
   =>
   (let [args (get ?type :args)]
     ;; (println "State is: Input Was Settings.")
+    (println args)
     (cond
     (= (args 0) "your_botid")
     (let [my-id (args 1)
@@ -575,12 +578,12 @@
           (insert! (->MbSecondRowSum secondRowSum))
           (= win-sum lastRowSum)
           (insert! (->MbLastRowSum lastRowSum))
-          :default (insert! (->State :4)))))
+          :else (insert! (->State :4)))))
 
 (defrule select-random-move
   [State (= :4 state)]
   =>
-  ;; (println "State is: Select Random Move.\n")
+   (println "State is: Select Random Move.\n")
   ;; (println "Select Move --Code goes here--.")
   (let [move-index ((choose-move-stage @macroboard-number @field-vector) 1)]
     (println (convert-move-for-output @macroboard-number move-index)))
@@ -804,6 +807,7 @@
 (defn -main
   ""
   [& args]
+  (println "i'm listening")
   (defsession ttt-session 'rulesbot.core)
   (-> ttt-session (insert (->State :1))
       (with-tracing)
