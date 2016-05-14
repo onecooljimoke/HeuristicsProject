@@ -4,7 +4,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.async "0.2.374"]]
+                 [org.clojure/core.async "0.2.374"]
+                 [org.toomuchcode/clara-rules "0.11.0"]]
   :plugins [[lein-marginalia "0.9.0"]]
   :main ^:skip-aot game-engine.core
   :target-path "target/%s"
